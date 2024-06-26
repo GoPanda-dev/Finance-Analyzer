@@ -84,6 +84,22 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Function to format key names
+        function formatKeyName(key) {
+            return key.replace(/([A-Z])/g, ' $1').replace(/^./, function(str){ return str.toUpperCase(); });
+        }
+
+        // Function to format values in millions and handle specific formatting for earnings
+        function formatValue(value, key) {
+            if (key.toLowerCase().includes('eps') || key.toLowerCase().includes('surprise')) {
+                return value;
+            }
+            if (!isNaN(value) && value !== null && value !== undefined) {
+                return (value / 1000000).toFixed(2) + ' M';
+            }
+            return value;
+        }
+
         // Function to create a table from flat JSON data
         function createTableFromFlatJSON(json) {
             if (json.Information) {
@@ -91,7 +107,7 @@
             }
             let table = "<tr><th>Key</th><th>Value</th></tr>";
             for (let key in json) {
-                table += `<tr><td>${key}</td><td>${json[key]}</td></tr>`;
+                table += `<tr><td>${formatKeyName(key)}</td><td>${json[key]}</td></tr>`;
             }
             return table;
         }
@@ -108,18 +124,19 @@
             data.sort((a, b) => new Date(b.fiscalDateEnding) - new Date(a.fiscalDateEnding));
             let table = "<tr>";
             for (let key in data[0]) {
-                table += `<th>${key}</th>`;
+                table += `<th>${formatKeyName(key)}</th>`;
             }
             table += "</tr>";
             for (let item of data) {
                 table += "<tr>";
                 for (let key in item) {
-                    table += `<td>${item[key]}</td>`;
+                    table += `<td>${formatValue(item[key], key)}</td>`;
                 }
                 table += "</tr>";
             }
             return table;
         }
+
 
         // Function to toggle data type
         function toggleDataType() {
@@ -193,69 +210,69 @@
                     x: {
                         type: 'time',
                         time: {
-                                unit: 'day',
-                                tooltipFormat: 'yyyy-MM-dd'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
+                            unit: 'day',
+                            tooltipFormat: 'yyyy-MM-dd'
                         },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Price'
-                            },
-                            ticks: {
-                                beginAtZero: false
-                            }
+                        title: {
+                            display: true,
+                            text: 'Date'
                         }
                     },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    var y = context.raw.y;
-                                    return `Close: ${y}`;
-                                }
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Price'
+                        },
+                        ticks: {
+                            beginAtZero: false
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var y = context.raw.y;
+                                return `Close: ${y}`;
                             }
                         }
                     }
                 }
-            });
+            }
         });
-    </script>
-    <style>
-        .accordion-button {
-            width: 100%;
-            text-align: left;
-            background-color: #f1f1f1;
-            border: none;
-            outline: none;
-            padding: 18px;
-            font-size: 15px;
-            transition: 0.4s;
-            cursor: pointer;
-            display: block;
-            border-bottom: 1px solid #ddd;
-            border-radius: 0; /* Remove rounding */
-        }
+    });
+</script>
+<style>
+    .accordion-button {
+        width: 100%;
+        text-align: left;
+        background-color: #f1f1f1;
+        border: none;
+        outline: none;
+        padding: 18px;
+        font-size: 15px;
+        transition: 0.4s;
+        cursor: pointer;
+        display: block;
+        border-bottom: 1px solid #ddd;
+        border-radius: 0; /* Remove rounding */
+    }
 
-        .accordion-button:hover,
-        .accordion-button:focus {
-            background-color: #ccc;
-        }
+    .accordion-button:hover,
+    .accordion-button:focus {
+        background-color: #ccc;
+    }
 
-        .accordion-content {
-            display: none;
-            padding: 18px;
-            background-color: white;
-            border-top: none;
-            overflow: hidden;
-        }
+    .accordion-content {
+        display: none;
+        padding: 18px;
+        background-color: white;
+        border-top: none;
+        overflow: hidden;
+    }
 
-        .toggle-container {
-            margin-bottom: 20px;
-        }
-    </style>
+    .toggle-container {
+        margin-bottom: 20px;
+    }
+</style>
 {% endblock %}

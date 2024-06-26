@@ -8,14 +8,25 @@ CACHE_DURATION = timedelta(minutes=15)
 cache = {}
 
 def fetch_stock_data(symbol, interval):
-    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval={interval}&apikey={API_KEY}'
+    api_key = 'YOUR_API_KEY'
+    base_url = 'https://www.alphavantage.co/query?'
+    
+    function = 'TIME_SERIES_INTRADAY' if 'min' in interval else 'TIME_SERIES_' + interval.upper()
+    
+    url = f"{base_url}function={function}&symbol={symbol}&interval={interval}&apikey={api_key}"
     response = requests.get(url)
+    
     if response.status_code == 200:
-        return response.json()
-    return {}
+        json_response = response.json()
+        if 'Information' in json_response:
+            return {'Information': json_response['Information']}
+        return json_response
+    else:
+        return None
+
 
 def fetch_fundamental_data(symbol):
-    api_key = API_KEY
+    api_key = 'YOUR_API_KEY'
     base_url = 'https://www.alphavantage.co/query?function='
 
     functions = {
@@ -30,16 +41,13 @@ def fetch_fundamental_data(symbol):
     for key, function in functions.items():
         url = f"{base_url}{function}&symbol={symbol}&apikey={api_key}"
         response = requests.get(url)
-        print(f"Fetching {function} for {symbol}: {response.status_code}")
-        response_json = response.json()
-        print(response_json)  # Print the response for debugging
         if response.status_code == 200:
-            if "Information" in response_json:
-                data[key] = {"error": response_json["Information"]}
-            else:
-                data[key] = response_json
+            json_response = response.json()
+            if 'Information' in json_response:
+                return {'Information': json_response['Information']}
+            data[key] = json_response
         else:
-            data[key] = {"error": "Failed to fetch data. Please try again later."}
+            data[key] = None
 
     return data
 

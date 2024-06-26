@@ -4,6 +4,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
 from .utils import fetch_stock_data, fetch_fundamental_data, cache_stock_data, get_cached_stock_data
+import logging
+
+logger = logging.getLogger(__name__)
 
 def homepage_view(request):
     return render(request, 'analysis/homepage.html')
@@ -21,26 +24,36 @@ def stock_view(request, symbol):
     stock_cache_key = f'{symbol}_{interval}_stock_data'
     fundamental_cache_key = f'{symbol}_fundamental_data'
     
-    # Try to get stock data from cache
-    time_series = cache.get(stock_cache_key)
-    cached = True
-    if not time_series:
-        raw_data = fetch_stock_data(symbol, interval)
-        time_series = raw_data.get(f'Time Series ({interval})', {})
+    try:
+        # Try to get stock data from cache
+        time_series = cache.get(stock_cache_key)
+        cached = True
         if not time_series:
-            return render(request, 'analysis/error.html', {'message': 'Failed to fetch data. Please try again later.'})
-        cache_stock_data(symbol, interval, time_series)
-        cache.set(stock_cache_key, time_series, 60 * 60)  # Cache for 1 hour
-        cached = False
-    
-    # Try to get fundamental data from cache
-    fundamental_data = cache.get(fundamental_cache_key)
-    if not fundamental_data:
-        fundamental_data = fetch_fundamental_data(symbol)
-        cache.set(fundamental_cache_key, fundamental_data, 60 * 60 * 24)  # Cache for 24 hours
-    
-    print(f"Fundamental Data: {fundamental_data}")  # Print the fundamental data for debugging
-    
+            raw_data = fetch_stock_data(symbol, interval)
+            if raw_data and 'Information' in raw_data:
+                return render(request, 'analysis/error.html', {'message': raw_data['Information']})
+            if not raw_data:
+                return render(request, 'analysis/error.html', {'message': 'Failed to fetch stock data. Please try again later.'})
+            time_series = raw_data.get(f'Time Series ({interval})', {})
+            if not time_series:
+                return render(request, 'analysis/error.html', {'message': 'No time series data available. Please try again later.'})
+            cache_stock_data(symbol, interval, time_series)
+            cache.set(stock_cache_key, time_series, 60 * 60)  # Cache for 1 hour
+            cached = False
+        
+        # Try to get fundamental data from cache
+        fundamental_data = cache.get(fundamental_cache_key)
+        if not fundamental_data:
+            fundamental_data = fetch_fundamental_data(symbol)
+            if fundamental_data and 'Information' in fundamental_data:
+                return render(request, 'analysis/error.html', {'message': fundamental_data['Information']})
+            if not fundamental_data:
+                return render(request, 'analysis/error.html', {'message': 'Failed to fetch fundamental data. Please try again later.'})
+            cache.set(fundamental_cache_key, fundamental_data, 60 * 60 * 24)  # Cache for 24 hours
+
+    except Exception as e:
+        return render(request, 'analysis/error.html', {'message': f'An error occurred. Please try again later. {e}'})
+
     context = {
         'symbol': symbol,
         'interval': interval,
