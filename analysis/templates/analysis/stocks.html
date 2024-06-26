@@ -47,6 +47,7 @@
                 <span class="icon" aria-hidden="true"></span>
             </button>
             <div id="content-income-statement" class="accordion-content">
+                <div class="column-toggles" id="income-statement-toggles"></div>
                 <table id="table-income-statement"></table>
             </div>
         </div>
@@ -56,6 +57,7 @@
                 <span class="icon" aria-hidden="true"></span>
             </button>
             <div id="content-balance-sheet" class="accordion-content">
+                <div class="column-toggles" id="balance-sheet-toggles"></div>
                 <table id="table-balance-sheet"></table>
             </div>
         </div>
@@ -65,6 +67,7 @@
                 <span class="icon" aria-hidden="true"></span>
             </button>
             <div id="content-cash-flow" class="accordion-content">
+                <div class="column-toggles" id="cash-flow-toggles"></div>
                 <table id="table-cash-flow"></table>
             </div>
         </div>
@@ -74,6 +77,7 @@
                 <span class="icon" aria-hidden="true"></span>
             </button>
             <div id="content-earnings" class="accordion-content">
+                <div class="column-toggles" id="earnings-toggles"></div>
                 <table id="table-earnings"></table>
             </div>
         </div>
@@ -84,23 +88,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Function to format key names
         function formatKeyName(key) {
-            return key.replace(/([A-Z])/g, ' $1').replace(/^./, function(str){ return str.toUpperCase(); });
+            return key.replace(/([A-Z])/g, ' $1').replace(/^./, function(str) { return str.toUpperCase(); });
         }
 
-        // Function to format values in millions and handle specific formatting for earnings
-        function formatValue(value, key) {
-            if (key.toLowerCase().includes('eps') || key.toLowerCase().includes('surprise')) {
-                return value;
-            }
-            if (!isNaN(value) && value !== null && value !== undefined) {
-                return (value / 1000000).toFixed(2) + ' M';
-            }
-            return value;
-        }
-
-        // Function to create a table from flat JSON data
         function createTableFromFlatJSON(json) {
             if (json.Information) {
                 return `<tr><td colspan="2">${json.Information}</td></tr>`;
@@ -112,7 +103,6 @@
             return table;
         }
 
-        // Function to create a table from nested JSON data
         function createTableFromNestedJSON(json, nestedKey) {
             if (json.Information) {
                 return `<tr><td colspan="2">${json.Information}</td></tr>`;
@@ -130,15 +120,17 @@
             for (let item of data) {
                 table += "<tr>";
                 for (let key in item) {
-                    table += `<td>${formatValue(item[key], key)}</td>`;
+                    let value = item[key];
+                    if (!isNaN(value) && key !== "fiscalDateEnding" && key !== "reportedDate" && !key.includes("EPS")) {
+                        value = (value / 1e6).toFixed(2) + ' M';
+                    }
+                    table += `<td>${value}</td>`;
                 }
                 table += "</tr>";
             }
             return table;
         }
 
-
-        // Function to toggle data type
         function toggleDataType() {
             const selectedType = document.getElementById('toggle-data').value;
             document.getElementById('table-income-statement').innerHTML = createTableFromNestedJSON(fundamentalData.INCOME_STATEMENT, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
@@ -147,41 +139,64 @@
             document.getElementById('table-earnings').innerHTML = createTableFromNestedJSON(fundamentalData.EARNINGS, selectedType === 'annual' ? 'annualEarnings' : 'quarterlyEarnings');
         }
 
-        // Get the fundamental data from the Django context
+        function createColumnToggles(tableId, toggleContainerId) {
+            const table = document.getElementById(tableId);
+            const toggleContainer = document.getElementById(toggleContainerId);
+            const headers = table.querySelectorAll('th');
+
+            headers.forEach((header, index) => {
+                const toggle = document.createElement('input');
+                toggle.type = 'checkbox';
+                toggle.checked = true;
+                toggle.id = `${tableId}-toggle-${index}`;
+                toggle.addEventListener('change', () => {
+                    const cells = table.querySelectorAll(`td:nth-child(${index + 1}), th:nth-child(${index + 1})`);
+                    cells.forEach(cell => {
+                        cell.style.display = toggle.checked ? '' : 'none';
+                    });
+                });
+
+                const label = document.createElement('label');
+                label.htmlFor = toggle.id;
+                label.innerText = header.innerText;
+
+                const div = document.createElement('div');
+                div.className = 'toggle';
+                div.appendChild(toggle);
+                div.appendChild(label);
+
+                toggleContainer.appendChild(div);
+            });
+        }
+
         var fundamentalData = {{ fundamental_data|safe }};
 
-        // Ensure the JSON data is correctly formatted and not empty
         console.log(fundamentalData);
 
-        // Set the content of each section with formatted JSON
         document.getElementById('table-company-overview').innerHTML = createTableFromFlatJSON(fundamentalData.OVERVIEW);
-        toggleDataType(); // Initial toggle to set the default data type
+        toggleDataType();
 
-        // Add event listener to the toggle
         document.getElementById('toggle-data').addEventListener('change', toggleDataType);
 
-        // Toggle accordion content visibility
         var buttons = document.querySelectorAll('.accordion button');
 
         buttons.forEach(function(button) {
             button.addEventListener('click', function() {
                 var expanded = button.getAttribute('aria-expanded') === 'true';
-                // Close all accordion items
                 buttons.forEach(function(btn) {
                     btn.setAttribute('aria-expanded', 'false');
                     document.getElementById(btn.getAttribute('aria-controls')).style.display = 'none';
                 });
-                // Open the clicked item if it was closed
                 if (!expanded) {
                     button.setAttribute('aria-expanded', 'true');
                     document.getElementById(button.getAttribute('aria-controls')).style.display = 'block';
+                    createColumnToggles(button.getAttribute('aria-controls').replace('content-', 'table-'), button.getAttribute('aria-controls').replace('content-', '') + '-toggles');
                 }
             });
         });
 
-        // Initialize the chart
         var timeSeries = {{ time_series|safe }};
-        var dates = Object.keys(timeSeries).sort((a, b) => new Date(a) - new Date(b)); // Ensure dates are sorted
+        var dates = Object.keys(timeSeries).sort((a, b) => new Date(a) - new Date(b));
         var closeData = [];
 
         dates.forEach(function(date) {
@@ -273,6 +288,22 @@
 
     .toggle-container {
         margin-bottom: 20px;
+    }
+
+    .column-toggles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .column-toggles .toggle {
+        display: flex;
+        align-items: center;
+    }
+
+    .column-toggles label {
+        margin-left: 5px;
     }
 </style>
 {% endblock %}
