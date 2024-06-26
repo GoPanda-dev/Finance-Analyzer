@@ -19,11 +19,11 @@ def fetch_fundamental_data(symbol):
     base_url = 'https://www.alphavantage.co/query?function='
 
     functions = {
-        'CompanyOverview': 'OVERVIEW',
-        'IncomeStatement': 'INCOME_STATEMENT',
-        'BalanceSheet': 'BALANCE_SHEET',
-        'CashFlow': 'CASH_FLOW',
-        'Earnings': 'EARNINGS',
+        'OVERVIEW': 'OVERVIEW',
+        'INCOME_STATEMENT': 'INCOME_STATEMENT',
+        'BALANCE_SHEET': 'BALANCE_SHEET',
+        'CASH_FLOW': 'CASH_FLOW',
+        'EARNINGS': 'EARNINGS',
     }
 
     data = {}
@@ -31,11 +31,15 @@ def fetch_fundamental_data(symbol):
         url = f"{base_url}{function}&symbol={symbol}&apikey={api_key}"
         response = requests.get(url)
         print(f"Fetching {function} for {symbol}: {response.status_code}")
-        print(response.json())  # Print the response for debugging
+        response_json = response.json()
+        print(response_json)  # Print the response for debugging
         if response.status_code == 200:
-            data[key] = response.json()
+            if "Information" in response_json:
+                data[key] = {"error": response_json["Information"]}
+            else:
+                data[key] = response_json
         else:
-            data[key] = None
+            data[key] = {"error": "Failed to fetch data. Please try again later."}
 
     return data
 
