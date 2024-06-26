@@ -1,0 +1,255 @@
+{% extends "analysis/base.html" %}
+{% load static %}
+
+{% block title %}Stock Analysis{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <h1>Stock Data for {{ symbol }}</h1>
+
+    <form method="get" action=".">
+        <label for="interval">Choose time interval:</label>
+        <select name="interval" id="interval" onchange="this.form.submit()">
+            <option value="1min" {% if interval == '1min' %}selected{% endif %}>1min</option>
+            <option value="5min" {% if interval == '5min' %}selected{% endif %}>5min</option>
+            <option value="15min" {% if interval == '15min' %}selected{% endif %}>15min</option>
+            <option value="30min" {% if interval == '30min' %}selected{% endif %}>30min</option>
+            <option value="60min" {% if interval == '60min' %}selected{% endif %}>60min</option>
+            <option value="daily" {% if interval == 'daily' %}selected{% endif %}>Daily</option>
+            <option value="weekly" {% if interval == 'weekly' %}selected{% endif %}>Weekly</option>
+            <option value="monthly" {% if interval == 'monthly' %}selected{% endif %}>Monthly</option>
+        </select>
+    </form>
+
+    <canvas id="chart" width="800" height="400"></canvas>
+
+    <div class="accordion">
+        <div class="accordion-item">
+            <button id="button-company-overview" aria-expanded="false" aria-controls="content-company-overview">
+                Company Overview
+                <span class="icon" aria-hidden="true"></span>
+            </button>
+            <div id="content-company-overview" class="accordion-content">
+                <pre id="json-company-overview"></pre>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button id="button-dividends" aria-expanded="false" aria-controls="content-dividends">
+                Dividends
+                <span class="icon" aria-hidden="true"></span>
+            </button>
+            <div id="content-dividends" class="accordion-content">
+                <pre id="json-dividends"></pre>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button id="button-splits" aria-expanded="false" aria-controls="content-splits">
+                Splits
+                <span class="icon" aria-hidden="true"></span>
+            </button>
+            <div id="content-splits" class="accordion-content">
+                <pre id="json-splits"></pre>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button id="button-income-statement" aria-expanded="false" aria-controls="content-income-statement">
+                Income Statement
+                <span class="icon" aria-hidden="true"></span>
+            </button>
+            <div id="content-income-statement" class="accordion-content">
+                <pre id="json-income-statement"></pre>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button id="button-balance-sheet" aria-expanded="false" aria-controls="content-balance-sheet">
+                Balance Sheet
+                <span class="icon" aria-hidden="true"></span>
+            </button>
+            <div id="content-balance-sheet" class="accordion-content">
+                <pre id="json-balance-sheet"></pre>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button id="button-cash-flow" aria-expanded="false" aria-controls="content-cash-flow">
+                Cash Flow
+                <span class="icon" aria-hidden="true"></span>
+            </button>
+            <div id="content-cash-flow" class="accordion-content">
+                <pre id="json-cash-flow"></pre>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button id="button-earnings" aria-expanded="false" aria-controls="content-earnings">
+                Earnings
+                <span class="icon" aria-hidden="true"></span>
+            </button>
+            <div id="content-earnings" class="accordion-content">
+                <pre id="json-earnings"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Function to pretty-print JSON data
+            function formatJSON(json) {
+                return JSON.stringify(json, null, 2);
+            }
+
+            // Get the fundamental data from the Django context
+            var fundamentalData = {{ fundamental_data|safe }};
+
+            // Ensure the JSON data is correctly formatted and not empty
+            console.log(fundamentalData);
+
+            // Set the content of each section with formatted JSON
+            document.getElementById('json-company-overview').textContent = formatJSON(fundamentalData['CompanyOverview']);
+            document.getElementById('json-dividends').textContent = formatJSON(fundamentalData['Dividends']);
+            document.getElementById('json-splits').textContent = formatJSON(fundamentalData['Splits']);
+            document.getElementById('json-income-statement').textContent = formatJSON(fundamentalData['IncomeStatement']);
+            document.getElementById('json-balance-sheet').textContent = formatJSON(fundamentalData['BalanceSheet']);
+            document.getElementById('json-cash-flow').textContent = formatJSON(fundamentalData['CashFlow']);
+            document.getElementById('json-earnings').textContent = formatJSON(fundamentalData['Earnings']);
+
+            // Toggle accordion content visibility
+            var buttons = document.querySelectorAll('.accordion button');
+
+            buttons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var expanded = button.getAttribute('aria-expanded') === 'true';
+                    // Close all accordion items
+                    buttons.forEach(function(btn) {
+                        btn.setAttribute('aria-expanded', 'false');
+                        document.getElementById(btn.getAttribute('aria-controls')).style.display = 'none';
+                    });
+                    // Open the clicked item if it was closed
+                    if (!expanded) {
+                        button.setAttribute('aria-expanded', 'true');
+                        document.getElementById(button.getAttribute('aria-controls')).style.display = 'block';
+                    }
+                });
+            });
+
+            // Initialize the chart
+            var timeSeries = {{ time_series|safe }};
+            var dates = Object.keys(timeSeries).sort((a, b) => new Date(a) - new Date(b)); // Ensure dates are sorted
+            var closeData = [];
+
+            dates.forEach(function(date) {
+                closeData.push({
+                    x: new Date(date),
+                    y: parseFloat(timeSeries[date]['4. close'])
+                });
+            });
+
+            var ctx = document.getElementById('chart').getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: '{{ symbol }}',
+                        data: closeData,
+                        borderColor: 'rgba(0, 0, 255, 1)',
+                        backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                        borderWidth: 1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'yyyy-MM-dd HH:mm',
+                                displayFormats: {
+                                    day: 'MMM d'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Price'
+                            },
+                            ticks: {
+                                beginAtZero: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    var y = context.raw.y;
+                                    return `Close: ${y}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</div>
+{% endblock %}
+
+<style>
+    .accordion {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+    }
+    .accordion-item {
+        flex: 1 1 20%;
+    }
+    .accordion button {
+        width: 100%;
+        text-align: left;
+        padding: 1em;
+        border: 1px solid #ccc;
+        outline: none;
+        transition: background-color 0.3s ease;
+        cursor: pointer;
+        background-color: #eee;
+        font-size: 1em;
+        margin: 0;
+        box-sizing: border-box;
+        border-radius: 0;
+    }
+    .accordion button:hover,
+    .accordion button[aria-expanded="true"] {
+        background-color: #ccc;
+    }
+    .accordion .icon {
+        font-size: 1.2em;
+        margin-left: auto;
+    }
+    .accordion-content {
+        display: none;
+        padding: 1em;
+        border-top: 1px solid #ccc;
+        background-color: #f9f9f9;
+    }
+    .content-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1em;
+    }
+    pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        background: #f4f4f4;
+        border: 1px solid #ddd;
+        padding: 1em;
+        margin: 0;
+        overflow: auto;
+    }
+</style>
