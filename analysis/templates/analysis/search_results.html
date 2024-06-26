@@ -1,0 +1,25 @@
+<!-- search_results.html -->
+{% extends "analysis/base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <h1>Search Results for "{{ query }}"</h1>
+    {% if assets %}
+        <ul>
+            {% for asset in assets %}
+                <li>
+                    <a href="{% url 'stock_view' symbol=asset|get_item:'1. symbol' %}">
+                        {{ asset|get_item:'2. name' }} ({{ asset|get_item:'1. symbol' }})
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No assets found.</p>
+    {% endif %}
+</div>
+{% endblock %}

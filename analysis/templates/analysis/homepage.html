@@ -1,11 +1,12 @@
+<!-- analysis/templates/analysis/homepage.html -->
 {% extends "analysis/base.html" %}
 
 {% block title %}Homepage{% endblock %}
 
 {% block content %}
 <h1>Welcome to the Finance Analyzer</h1>
-<form method="get" action="{% url 'search_view' %}">
-    <label for="query">Search for a stock symbol:</label>
+<form method="get" action="{% url 'unified_search_view' %}">
+    <label for="query">Search for a stock symbol or keyword:</label>
     <input type="text" id="query" name="query">
     <button type="submit">Search</button>
 </form>

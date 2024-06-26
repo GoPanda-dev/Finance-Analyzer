@@ -3,10 +3,40 @@ from django.core.cache import cache
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
-from .utils import fetch_stock_data, fetch_fundamental_data, cache_stock_data, get_cached_stock_data
+from django.utils.safestring import mark_safe
+from django.urls import reverse
+from .utils import fetch_stock_data, fetch_fundamental_data, cache_stock_data, get_cached_stock_data, fetch_all_assets
+import json
 import logging
 
 logger = logging.getLogger(__name__)
+
+def unified_search_view(request):
+    query = request.GET.get('query')
+    if query:
+        # Check if the query is a valid stock symbol
+        assets = fetch_all_assets(query)
+        # If a matching asset is found, assume it's a stock symbol
+        if any(asset['1. symbol'].lower() == query.lower() for asset in assets):
+            return redirect('stock_view', symbol=query)
+        else:
+            # If no exact symbol match, perform a keyword search
+            return redirect(f"{reverse('keyword_search_view')}?query={query}")
+    return render(request, 'analysis/error.html', {'message': 'No query provided.'})
+
+def keyword_search_view(request):
+    query = request.GET.get('query')
+    assets = []
+    if query:
+        assets = fetch_all_assets(query)
+        if not assets:
+            return render(request, 'analysis/error.html', {'message': 'No assets found.'})
+
+    context = {
+        'query': query,
+        'assets': assets,
+    }
+    return render(request, 'analysis/search_results.html', context)
 
 def homepage_view(request):
     return render(request, 'analysis/homepage.html')
@@ -57,8 +87,8 @@ def stock_view(request, symbol):
     context = {
         'symbol': symbol,
         'interval': interval,
-        'time_series': time_series,
-        'fundamental_data': fundamental_data,
+        'time_series': mark_safe(json.dumps(time_series)),
+        'fundamental_data': mark_safe(json.dumps(fundamental_data)),
         'cached': cached,
     }
     return render(request, 'analysis/stocks.html', context)
