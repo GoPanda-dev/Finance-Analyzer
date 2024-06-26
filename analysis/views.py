@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.core.cache import cache
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
@@ -15,15 +16,29 @@ def search_view(request):
 
 def stock_view(request, symbol):
     interval = request.GET.get('interval', '1min')
-    time_series, cached = get_cached_stock_data(symbol, interval)
+    
+    # Cache keys
+    stock_cache_key = f'{symbol}_{interval}_stock_data'
+    fundamental_cache_key = f'{symbol}_fundamental_data'
+    
+    # Try to get stock data from cache
+    time_series = cache.get(stock_cache_key)
+    cached = True
     if not time_series:
         raw_data = fetch_stock_data(symbol, interval)
-        time_series = raw_data.get('Time Series (1min)', {})
+        time_series = raw_data.get(f'Time Series ({interval})', {})
         if not time_series:
             return render(request, 'analysis/error.html', {'message': 'Failed to fetch data. Please try again later.'})
         cache_stock_data(symbol, interval, time_series)
+        cache.set(stock_cache_key, time_series, 60 * 60)  # Cache for 1 hour
+        cached = False
     
-    fundamental_data = fetch_fundamental_data(symbol)
+    # Try to get fundamental data from cache
+    fundamental_data = cache.get(fundamental_cache_key)
+    if not fundamental_data:
+        fundamental_data = fetch_fundamental_data(symbol)
+        cache.set(fundamental_cache_key, fundamental_data, 60 * 60 * 24)  # Cache for 24 hours
+    
     print(f"Fundamental Data: {fundamental_data}")  # Print the fundamental data for debugging
     
     context = {

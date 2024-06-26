@@ -7,7 +7,7 @@
 <div class="content-wrapper">
     <h1>Stock Data for {{ symbol }}</h1>
 
-    <form method="get" action=".">
+    <form method="get" action="{% url 'stock_view' symbol=symbol %}">
         <label for="interval">Choose time interval:</label>
         <select name="interval" id="interval" onchange="this.form.submit()">
             <option value="1min" {% if interval == '1min' %}selected{% endif %}>1min</option>
@@ -20,12 +20,20 @@
             <option value="monthly" {% if interval == 'monthly' %}selected{% endif %}>Monthly</option>
         </select>
     </form>
-    
+
     <canvas id="chart" width="800" height="400"></canvas>
+
+    <div class="toggle-container">
+        <label for="toggle-data">Select Data Type:</label>
+        <select id="toggle-data">
+            <option value="annual">Annual</option>
+            <option value="quarterly">Quarterly</option>
+        </select>
+    </div>
 
     <div class="accordion">
         <div class="accordion-item">
-            <button id="button-company-overview" aria-expanded="false" aria-controls="content-company-overview">
+            <button id="button-company-overview" class="accordion-button" aria-expanded="false" aria-controls="content-company-overview">
                 Company Overview
                 <span class="icon" aria-hidden="true"></span>
             </button>
@@ -34,7 +42,7 @@
             </div>
         </div>
         <div class="accordion-item">
-            <button id="button-income-statement" aria-expanded="false" aria-controls="content-income-statement">
+            <button id="button-income-statement" class="accordion-button" aria-expanded="false" aria-controls="content-income-statement">
                 Income Statement
                 <span class="icon" aria-hidden="true"></span>
             </button>
@@ -43,7 +51,7 @@
             </div>
         </div>
         <div class="accordion-item">
-            <button id="button-balance-sheet" aria-expanded="false" aria-controls="content-balance-sheet">
+            <button id="button-balance-sheet" class="accordion-button" aria-expanded="false" aria-controls="content-balance-sheet">
                 Balance Sheet
                 <span class="icon" aria-hidden="true"></span>
             </button>
@@ -52,7 +60,7 @@
             </div>
         </div>
         <div class="accordion-item">
-            <button id="button-cash-flow" aria-expanded="false" aria-controls="content-cash-flow">
+            <button id="button-cash-flow" class="accordion-button" aria-expanded="false" aria-controls="content-cash-flow">
                 Cash Flow
                 <span class="icon" aria-hidden="true"></span>
             </button>
@@ -61,7 +69,7 @@
             </div>
         </div>
         <div class="accordion-item">
-            <button id="button-earnings" aria-expanded="false" aria-controls="content-earnings">
+            <button id="button-earnings" class="accordion-button" aria-expanded="false" aria-controls="content-earnings">
                 Earnings
                 <span class="icon" aria-hidden="true"></span>
             </button>
@@ -96,12 +104,14 @@
             if (!json[nestedKey] || json[nestedKey].length === 0) {
                 return `<tr><td colspan="2">No data available</td></tr>`;
             }
+            let data = json[nestedKey];
+            data.sort((a, b) => new Date(b.fiscalDateEnding) - new Date(a.fiscalDateEnding));
             let table = "<tr>";
-            for (let key in json[nestedKey][0]) {
+            for (let key in data[0]) {
                 table += `<th>${key}</th>`;
             }
             table += "</tr>";
-            for (let item of json[nestedKey]) {
+            for (let item of data) {
                 table += "<tr>";
                 for (let key in item) {
                     table += `<td>${item[key]}</td>`;
@@ -109,6 +119,15 @@
                 table += "</tr>";
             }
             return table;
+        }
+
+        // Function to toggle data type
+        function toggleDataType() {
+            const selectedType = document.getElementById('toggle-data').value;
+            document.getElementById('table-income-statement').innerHTML = createTableFromNestedJSON(fundamentalData.INCOME_STATEMENT, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
+            document.getElementById('table-balance-sheet').innerHTML = createTableFromNestedJSON(fundamentalData.BALANCE_SHEET, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
+            document.getElementById('table-cash-flow').innerHTML = createTableFromNestedJSON(fundamentalData.CASH_FLOW, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
+            document.getElementById('table-earnings').innerHTML = createTableFromNestedJSON(fundamentalData.EARNINGS, selectedType === 'annual' ? 'annualEarnings' : 'quarterlyEarnings');
         }
 
         // Get the fundamental data from the Django context
@@ -119,10 +138,10 @@
 
         // Set the content of each section with formatted JSON
         document.getElementById('table-company-overview').innerHTML = createTableFromFlatJSON(fundamentalData.OVERVIEW);
-        document.getElementById('table-income-statement').innerHTML = createTableFromNestedJSON(fundamentalData.INCOME_STATEMENT, 'annualReports');
-        document.getElementById('table-balance-sheet').innerHTML = createTableFromNestedJSON(fundamentalData.BALANCE_SHEET, 'annualReports');
-        document.getElementById('table-cash-flow').innerHTML = createTableFromNestedJSON(fundamentalData.CASH_FLOW, 'annualReports');
-        document.getElementById('table-earnings').innerHTML = createTableFromNestedJSON(fundamentalData.EARNINGS, 'annualEarnings');
+        toggleDataType(); // Initial toggle to set the default data type
+
+        // Add event listener to the toggle
+        document.getElementById('toggle-data').addEventListener('change', toggleDataType);
 
         // Toggle accordion content visibility
         var buttons = document.querySelectorAll('.accordion button');
@@ -174,36 +193,69 @@
                     x: {
                         type: 'time',
                         time: {
-                            unit: 'day',
-                            tooltipFormat: 'yyyy-MM-dd'
+                                unit: 'day',
+                                tooltipFormat: 'yyyy-MM-dd'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
                         },
-                        title: {
-                            display: true,
-                            text: 'Date'
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Price'
+                            },
+                            ticks: {
+                                beginAtZero: false
+                            }
                         }
                     },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Price'
-                        },
-                        ticks: {
-                            beginAtZero: false
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                var y = context.raw.y;
-                                return `Close: ${y}`;
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    var y = context.raw.y;
+                                    return `Close: ${y}`;
+                                }
                             }
                         }
                     }
                 }
-            }
+            });
         });
-    });
-</script>
+    </script>
+    <style>
+        .accordion-button {
+            width: 100%;
+            text-align: left;
+            background-color: #f1f1f1;
+            border: none;
+            outline: none;
+            padding: 18px;
+            font-size: 15px;
+            transition: 0.4s;
+            cursor: pointer;
+            display: block;
+            border-bottom: 1px solid #ddd;
+            border-radius: 0; /* Remove rounding */
+        }
+
+        .accordion-button:hover,
+        .accordion-button:focus {
+            background-color: #ccc;
+        }
+
+        .accordion-content {
+            display: none;
+            padding: 18px;
+            background-color: white;
+            border-top: none;
+            overflow: hidden;
+        }
+
+        .toggle-container {
+            margin-bottom: 20px;
+        }
+    </style>
 {% endblock %}
