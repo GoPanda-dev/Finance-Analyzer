@@ -18,6 +18,9 @@ class Stock(models.Model):
     price = models.FloatField()
     date = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.name
+
 class Currency(models.Model):
     code = models.CharField(max_length=10)
     name = models.CharField(max_length=100)

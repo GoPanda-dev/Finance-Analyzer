@@ -5,15 +5,49 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
 from django.utils.safestring import mark_safe
-from .models import WatchlistItem
+from .models import WatchlistItem, Stock
 from .forms import WatchlistItemForm, RemoveWatchlistItemForm
 from django.http import JsonResponse
 from django.urls import reverse
+from django.template.loader import render_to_string
 from .utils import fetch_stock_data, fetch_fundamental_data, cache_stock_data, get_cached_stock_data, fetch_all_assets
 import json
+import requests
 import logging
 
 logger = logging.getLogger(__name__)
+
+ALPHA_VANTAGE_API_KEY = 'your_alphavantage_api_key'  # Replace with your Alpha Vantage API key
+ALPHA_VANTAGE_URL = 'https://www.alphavantage.co/query'
+
+def ajax_search(request):
+    query = request.GET.get('query', '')
+    results = []
+
+    if query:
+        params = {
+            'function': 'SYMBOL_SEARCH',
+            'keywords': query,
+            'apikey': ALPHA_VANTAGE_API_KEY
+        }
+        response = requests.get(ALPHA_VANTAGE_URL, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            if 'bestMatches' in data:
+                results = [
+                    {
+                        'symbol': match['1. symbol'],
+                        'name': match['2. name']
+                    }
+                    for match in data['bestMatches']
+                ]
+    
+    logger.debug(f"Search query: {query}")
+    logger.debug(f"Search results: {results}")
+
+    html = render_to_string('analysis/search_results.html', {'results': results})
+    return JsonResponse({'html': html})
+
 
 def get_fundamental_data(request, symbol):
     fundamental_data = cache.get(f'{symbol}_fundamental_data')

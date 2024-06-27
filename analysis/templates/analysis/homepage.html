@@ -10,7 +10,7 @@
     <ul>
         {% for item in watchlist_items %}
             <li>
-                {{ item.name }} ({{ item.symbol }})
+                <a href="{% url 'stock_view' symbol=item.symbol %}">{{ item.name }} ({{ item.symbol }})</a>
                 <form method="post" action="{% url 'remove_from_watchlist' %}" style="display:inline;">
                     {% csrf_token %}
                     <input type="hidden" name="item_id" value="{{ item.id }}">
