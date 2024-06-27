@@ -1,13 +1,31 @@
-<!-- analysis/templates/analysis/homepage.html -->
 {% extends "analysis/base.html" %}
 
 {% block title %}Homepage{% endblock %}
 
 {% block content %}
 <h1>Welcome to the Finance Analyzer</h1>
-<form method="get" action="{% url 'unified_search_view' %}">
-    <label for="query">Search for a stock symbol or keyword:</label>
-    <input type="text" id="query" name="query">
-    <button type="submit">Search</button>
-</form>
+
+{% if user.is_authenticated %}
+    <h2>Your Watchlist</h2>
+    <ul>
+        {% for item in watchlist_items %}
+            <li>
+                {{ item.name }} ({{ item.symbol }})
+                <form method="post" action="{% url 'remove_from_watchlist' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit">Remove</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+    <h3>Add to Watchlist</h3>
+    <form method="post" action="{% url 'add_to_watchlist' %}">
+        {% csrf_token %}
+        {{ watchlist_item_form.as_p }}
+        <button type="submit">Add</button>
+    </form>
+{% else %}
+    <p>Please <a href="{% url 'login' %}">login</a> to manage your watchlist.</p>
+{% endif %}
 {% endblock %}

@@ -22,6 +22,22 @@
         </select>
     </form>
 
+    {% if user.is_authenticated %}
+        {% if in_watchlist %}
+            <form method="post" action="{% url 'remove_from_watchlist_from_stock' %}">
+                {% csrf_token %}
+                <input type="hidden" name="symbol" value="{{ symbol }}">
+                <button type="submit">Remove from Watchlist</button>
+            </form>
+        {% else %}
+            <form method="post" action="{% url 'add_to_watchlist_from_stock' %}">
+                {% csrf_token %}
+                <input type="hidden" name="symbol" value="{{ symbol }}">
+                <input type="hidden" name="name" value="{{ stock_name }}">
+                <button type="submit">Add to Watchlist</button>
+            </form>
+        {% endif %}
+    {% endif %}
 
     <div style="max-width: 100%; height: 400px;">
         <canvas id="chart"></canvas>
@@ -89,8 +105,8 @@
 </div>
 
 <!-- Embed JSON data using script tags -->
-<script type="application/json" id="time_series_data">{{ time_series }}</script>
-<script type="application/json" id="fundamental_data">{{ fundamental_data }}</script>
+<script type="application/json" id="time_series_data">{{ time_series|escapejs }}</script>
+<script type="application/json" id="fundamental_data">{{ fundamental_data|escapejs }}</script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>

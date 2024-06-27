@@ -4,16 +4,41 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Get the data from the script tags
     var symbol = document.querySelector('.content-wrapper').getAttribute('data-symbol');
-    var timeSeriesData = JSON.parse(document.getElementById('time_series_data').textContent);
-    var fundamentalData = JSON.parse(document.getElementById('fundamental_data').textContent);
+    var timeSeriesDataContent = document.getElementById('time_series_data').textContent;
+    var fundamentalDataContent = document.getElementById('fundamental_data').textContent;
 
-    // Print the JSON data to the console for debugging
-    console.log('Symbol:', symbol);
-    console.log('Time Series Data:', timeSeriesData);
-    console.log('Fundamental Data:', fundamentalData);
+    // Function to decode unicode escape sequences
+    function decodeUnicodeEscape(str) {
+        return str.replace(/\\u([\d\w]{4})/gi, function (match, grp) {
+            return String.fromCharCode(parseInt(grp, 16));
+        }).replace(/\\'/g, "'").replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t');
+    }
+
+    // Decode the raw JSON data
+    var decodedTimeSeriesDataContent = decodeUnicodeEscape(timeSeriesDataContent);
+    var decodedFundamentalDataContent = decodeUnicodeEscape(fundamentalDataContent);
+
+    // Print the raw JSON data to the console for debugging
+    console.log('Decoded Time Series Data:', decodedTimeSeriesDataContent);
+    console.log('Decoded Fundamental Data:', decodedFundamentalDataContent);
+
+    try {
+        var timeSeriesData = JSON.parse(decodedTimeSeriesDataContent);
+        var fundamentalData = JSON.parse(decodedFundamentalDataContent);
+    } catch (e) {
+        console.error('Error parsing JSON data:', e);
+        return; // Exit if JSON parsing fails
+    }
+
+    // Print the parsed JSON data to the console for debugging
+    console.log('Parsed Time Series Data:', timeSeriesData);
+    console.log('Parsed Fundamental Data:', fundamentalData);
 
     function createChart(data) {
         console.log('Chart Data:', data); // Log the chart data to ensure it is correctly formatted
+        if (chart) {
+            chart.destroy();
+        }
         chart = new Chart(ctx, {
             type: 'line',
             data: {

@@ -5,6 +5,10 @@ from .views import unified_search_view
 
 urlpatterns = [
     path('', views.homepage_view, name='homepage'),
+    path('add_to_watchlist/', views.add_to_watchlist, name='add_to_watchlist'),
+    path('add_to_watchlist_from_stock/', views.add_to_watchlist_from_stock, name='add_to_watchlist_from_stock'),
+    path('remove_from_watchlist_from_stock/', views.remove_from_watchlist_from_stock, name='remove_from_watchlist_from_stock'),
+    path('remove_from_watchlist/', views.remove_from_watchlist, name='remove_from_watchlist'),
     path('stocks/<str:symbol>/', views.stock_view, name='stock_view'),
     path('search/', unified_search_view, name='unified_search_view'),
     path('keyword_search/', views.keyword_search_view, name='keyword_search_view'),
