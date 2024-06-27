@@ -2,6 +2,9 @@ document.addEventListener("DOMContentLoaded", function() {
     var ctx = document.getElementById('chart').getContext('2d');
     var chart;
 
+    var earningsCtx = document.getElementById('earnings-chart').getContext('2d');
+    var earningsChart;
+
     // Get the data from the script tags
     var symbol = document.querySelector('.content-wrapper').getAttribute('data-symbol');
     var timeSeriesDataContent = document.getElementById('time_series_data').textContent;
@@ -194,14 +197,37 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function toggleDataType() {
         const selectedType = document.getElementById('toggle-data').value;
-        document.getElementById('table-income-statement').innerHTML = createTableFromNestedJSON(fundamentalData.INCOME_STATEMENT, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
-        document.getElementById('table-balance-sheet').innerHTML = createTableFromNestedJSON(fundamentalData.BALANCE_SHEET, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
-        document.getElementById('table-cash-flow').innerHTML = createTableFromNestedJSON(fundamentalData.CASH_FLOW, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
-        document.getElementById('table-earnings').innerHTML = createTableFromNestedJSON(fundamentalData.EARNINGS, selectedType === 'annual' ? 'annualEarnings' : 'quarterlyEarnings');
+
+        const incomeStatementTable = document.getElementById('table-income-statement');
+        const balanceSheetTable = document.getElementById('table-balance-sheet');
+        const cashFlowTable = document.getElementById('table-cash-flow');
+
+        if (incomeStatementTable) {
+            incomeStatementTable.innerHTML = createTableFromNestedJSON(fundamentalData.INCOME_STATEMENT, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
+        }
+
+        if (balanceSheetTable) {
+            balanceSheetTable.innerHTML = createTableFromNestedJSON(fundamentalData.BALANCE_SHEET, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
+        }
+
+        if (cashFlowTable) {
+            cashFlowTable.innerHTML = createTableFromNestedJSON(fundamentalData.CASH_FLOW, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
+        }
+
+        if (fundamentalData.EARNINGS) {
+            const earningsData = fundamentalData.EARNINGS[selectedType === 'annual' ? 'annualEarnings' : 'quarterlyEarnings'].map(item => ({
+                x: item.fiscalDateEnding,
+                y: parseFloat(item.reportedEPS)
+            })).sort((a, b) => new Date(a.x) - new Date(b.x));
+
+            createEarningsChart(earningsData);
+        }
     }
 
     function createColumnToggles(tableId, toggleContainerId) {
         const table = document.getElementById(tableId);
+        if (!table) return;
+
         const toggleContainer = document.getElementById(toggleContainerId);
         const headers = table.querySelectorAll('th');
 
@@ -230,10 +256,17 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    document.getElementById('table-company-overview').innerHTML = createTableFromFlatJSON(fundamentalData.OVERVIEW);
+    const companyOverviewTable = document.getElementById('table-company-overview');
+    if (companyOverviewTable) {
+        companyOverviewTable.innerHTML = createTableFromFlatJSON(fundamentalData.OVERVIEW);
+    }
+
     toggleDataType();
 
-    document.getElementById('toggle-data').addEventListener('change', toggleDataType);
+    const toggleDataElement = document.getElementById('toggle-data');
+    if (toggleDataElement) {
+        toggleDataElement.addEventListener('change', toggleDataType);
+    }
 
     var buttons = document.querySelectorAll('.accordion button');
 
@@ -242,13 +275,106 @@ document.addEventListener("DOMContentLoaded", function() {
             var expanded = button.getAttribute('aria-expanded') === 'true';
             buttons.forEach(function(btn) {
                 btn.setAttribute('aria-expanded', 'false');
-                document.getElementById(btn.getAttribute('aria-controls')).style.display = 'none';
+                const content = document.getElementById(btn.getAttribute('aria-controls'));
+                if (content) {
+                    content.style.display = 'none';
+                }
             });
             if (!expanded) {
                 button.setAttribute('aria-expanded', 'true');
-                document.getElementById(button.getAttribute('aria-controls')).style.display = 'block';
-                createColumnToggles(button.getAttribute('aria-controls').replace('content-', 'table-'), button.getAttribute('aria-controls').replace('content-', '') + '-toggles');
+                const content = document.getElementById(button.getAttribute('aria-controls'));
+                if (content) {
+                    content.style.display = 'block';
+                    createColumnToggles(button.getAttribute('aria-controls').replace('content-', 'table-'), button.getAttribute('aria-controls').replace('content-', '') + '-toggles');
+                }
             }
         });
     });
+
+    function createEarningsChart(data) {
+        console.log('Earnings Chart Data:', data); // Log the earnings chart data to ensure it is correctly formatted
+        if (earningsChart) {
+            earningsChart.destroy();
+        }
+        earningsChart = new Chart(earningsCtx, {
+            type: 'bar',
+            data: {
+                labels: data.map(item => item.x),
+                datasets: [{
+                    label: 'Earnings',
+                    data: data.map(item => item.y),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Fiscal Date',
+                            color: '#666',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        ticks: {
+                            color: '#666',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Earnings',
+                            color: '#666',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        ticks: {
+                            color: '#666',
+                            font: {
+                                size: 12
+                            },
+                            beginAtZero: true,
+                            max: Math.max(...data.map(item => item.y)) * 1.2
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#666',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: {
+                            size: 16
+                        },
+                        bodyFont: {
+                            size: 14
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Create the earnings chart with the initial data
+    const earningsData = fundamentalData.EARNINGS.annualEarnings.map(item => ({
+        x: item.fiscalDateEnding,
+        y: parseFloat(item.reportedEPS)
+    })).sort((a, b) => new Date(a.x) - new Date(b.x));
+
+    createEarningsChart(earningsData);
 });
