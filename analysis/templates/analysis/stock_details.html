@@ -1,0 +1,45 @@
+{% extends "analysis/base.html" %}
+
+{% block title %}{{ symbol }} Details{% endblock %}
+
+{% block content %}
+<h2>{{ symbol }} Details</h2>
+
+<h3>Fundamental Data</h3>
+<pre>{{ fundamental_data | safe }}</pre>
+
+<h3>Time Series Data</h3>
+<div id="timeseries_chart"></div>
+
+<script type="text/javascript">
+    // Example of plotting timeseries data using Chart.js or another library
+    var ctx = document.getElementById('timeseries_chart').getContext('2d');
+    var chartData = {{ timeseries_data|safe }};
+    
+    var labels = Object.keys(chartData['close']);
+    var data = Object.values(chartData['close']);
+    
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '{{ symbol }} Price',
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

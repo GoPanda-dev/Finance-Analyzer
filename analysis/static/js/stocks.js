@@ -176,22 +176,26 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         let data = json[nestedKey];
         data.sort((a, b) => new Date(b.fiscalDateEnding) - new Date(a.fiscalDateEnding));
-        let table = "<tr>";
-        for (let key in data[0]) {
-            table += `<th>${formatKeyName(key)}</th>`;
-        }
+
+        let table = "<tr><th>Key</th>";
+        data.forEach(item => {
+            table += `<th>${item.fiscalDateEnding}</th>`;
+        });
         table += "</tr>";
-        for (let item of data) {
-            table += "<tr>";
-            for (let key in item) {
+
+        const keys = Object.keys(data[0]);
+        keys.forEach(key => {
+            table += `<tr><td>${formatKeyName(key)}</td>`;
+            data.forEach(item => {
                 let value = item[key];
-                if (!isNaN(value) && key !== "fiscalDateEnding" && key !== "reportedDate" && !key.includes("EPS")) {
-                    value = (value / 1e6).toFixed(2) + ' M';
+                if (value && !isNaN(value) && key !== "fiscalDateEnding" && key !== "reportedDate" && !key.includes("EPS")) {
+                    value = parseFloat(value).toFixed(2);
                 }
                 table += `<td>${value}</td>`;
-            }
+            });
             table += "</tr>";
-        }
+        });
+
         return table;
     }
 
@@ -204,14 +208,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (incomeStatementTable) {
             incomeStatementTable.innerHTML = createTableFromNestedJSON(fundamentalData.INCOME_STATEMENT, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
+            createRowToggles('table-income-statement', 'income-statement-toggles');
         }
 
         if (balanceSheetTable) {
             balanceSheetTable.innerHTML = createTableFromNestedJSON(fundamentalData.BALANCE_SHEET, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
+            createRowToggles('table-balance-sheet', 'balance-sheet-toggles');
         }
 
         if (cashFlowTable) {
             cashFlowTable.innerHTML = createTableFromNestedJSON(fundamentalData.CASH_FLOW, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
+            createRowToggles('table-cash-flow', 'cash-flow-toggles');
         }
 
         if (fundamentalData.EARNINGS) {
@@ -224,28 +231,31 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    function createColumnToggles(tableId, toggleContainerId) {
+    function createRowToggles(tableId, toggleContainerId) {
         const table = document.getElementById(tableId);
         if (!table) return;
 
         const toggleContainer = document.getElementById(toggleContainerId);
-        const headers = table.querySelectorAll('th');
+        toggleContainer.innerHTML = ''; // Clear any existing toggles
 
-        headers.forEach((header, index) => {
+        const rows = table.querySelectorAll('tr');
+        rows.forEach((row, index) => {
+            if (index === 0) return; // Skip the header row
+            const keyCell = row.querySelector('td:first-child');
+            if (!keyCell) return;
+
+            const uniqueId = `${tableId}-toggle-${index}-${Math.random().toString(36).substr(2, 9)}`;
             const toggle = document.createElement('input');
             toggle.type = 'checkbox';
             toggle.checked = true;
-            toggle.id = `${tableId}-toggle-${index}`;
+            toggle.id = uniqueId;
             toggle.addEventListener('change', () => {
-                const cells = table.querySelectorAll(`td:nth-child(${index + 1}), th:nth-child(${index + 1})`);
-                cells.forEach(cell => {
-                    cell.style.display = toggle.checked ? '' : 'none';
-                });
+                row.style.display = toggle.checked ? '' : 'none';
             });
 
             const label = document.createElement('label');
-            label.htmlFor = toggle.id;
-            label.innerText = header.innerText;
+            label.htmlFor = uniqueId;
+            label.innerText = keyCell.innerText;
 
             const div = document.createElement('div');
             div.className = 'toggle';
@@ -285,7 +295,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 const content = document.getElementById(button.getAttribute('aria-controls'));
                 if (content) {
                     content.style.display = 'block';
-                    createColumnToggles(button.getAttribute('aria-controls').replace('content-', 'table-'), button.getAttribute('aria-controls').replace('content-', '') + '-toggles');
                 }
             }
         });
