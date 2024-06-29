@@ -1,9 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
-    var ctx = document.getElementById('chart').getContext('2d');
     var chart;
-
-    var earningsCtx = document.getElementById('earnings-chart').getContext('2d');
     var earningsChart;
+    var chartType = 'line'; // Default chart type
 
     // Get the data from the script tags
     var symbol = document.querySelector('.content-wrapper').getAttribute('data-symbol');
@@ -12,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Function to decode unicode escape sequences
     function decodeUnicodeEscape(str) {
-        return str.replace(/\\u([\d\w]{4})/gi, function (match, grp) {
+        return str.replace(/\\u([\d\w]{4})/gi, function(match, grp) {
             return String.fromCharCode(parseInt(grp, 16));
         }).replace(/\\'/g, "'").replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t');
     }
@@ -37,120 +35,79 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log('Parsed Time Series Data:', timeSeriesData);
     console.log('Parsed Fundamental Data:', fundamentalData);
 
-    function createChart(data) {
+    function createChart(data, type = 'line') {
         console.log('Chart Data:', data); // Log the chart data to ensure it is correctly formatted
         if (chart) {
             chart.destroy();
         }
-        chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                datasets: [{
-                    label: symbol,
-                    data: data,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'yyyy-MM-dd'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Date',
-                            color: '#666',
-                            font: {
-                                size: 14
+
+        var options = {
+            series: [{
+                name: symbol,
+                data: type === 'candlestick' ? data.map(item => ({
+                    x: item.x,
+                    y: [item.open, item.high, item.low, item.close]
+                })) : data
+            }],
+            chart: {
+                type: type,
+                height: 400,
+                toolbar: {
+                    show: true,
+                    tools: {
+                        customIcons: [{
+                            icon: '<i class="fa-solid fa-chart-line"></i>',
+                            index: -1,
+                            title: 'Toggle Line/Candlestick',
+                            class: 'custom-icon',
+                            click: function(chart, options, e) {
+                                chartType = chartType === 'candlestick' ? 'line' : 'candlestick';
+                                createChart(data, chartType);
                             }
-                        },
-                        ticks: {
-                            color: '#666',
-                            font: {
-                                size: 12
-                            }
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Price',
-                            color: '#666',
-                            font: {
-                                size: 14
-                            }
-                        },
-                        ticks: {
-                            color: '#666',
-                            font: {
-                                size: 12
-                            },
-                            beginAtZero: false
-                        }
+                        }]
                     }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#666',
-                            font: {
-                                size: 14
-                            }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleFont: {
-                            size: 16
-                        },
-                        bodyFont: {
-                            size: 14
-                        },
-                        callbacks: {
-                            label: function(context) {
-                                var y = context.raw.y;
-                                return `Close: ${y}`;
-                            }
-                        }
-                    },
-                    zoom: {
-                        pan: {
-                            enabled: true,
-                            mode: 'x',
-                        },
-                        zoom: {
-                            wheel: {
-                                enabled: true,
-                            },
-                            pinch: {
-                                enabled: true
-                            },
-                            mode: 'x',
-                        }
+                }
+            },
+            xaxis: {
+                type: 'datetime',
+                categories: data.map(item => item.x),
+                title: {
+                    text: 'Date'
+                }
+            },
+            yaxis: {
+                title: {
+                    text: 'Price'
+                }
+            },
+            plotOptions: {
+                candlestick: {
+                    wick: {
+                        useFillColor: true
                     }
                 }
             }
-        });
+        };
+
+        if (type === 'line') {
+            options.series[0].data = data.map(item => ({ x: item.x, y: item.close }));
+        }
+
+        chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
     }
 
     // Create the chart with the initial data
     var dates = Object.keys(timeSeriesData).sort((a, b) => new Date(a) - new Date(b));
     var formattedData = dates.map(date => ({
         x: new Date(date),
-        y: parseFloat(timeSeriesData[date]['4. close'])
+        open: parseFloat(timeSeriesData[date]['1. open']),
+        high: parseFloat(timeSeriesData[date]['2. high']),
+        low: parseFloat(timeSeriesData[date]['3. low']),
+        close: parseFloat(timeSeriesData[date]['4. close'])
     }));
 
-    createChart(formattedData);
+    createChart(formattedData, chartType);
 
     function formatKeyName(key) {
         return key.replace(/([A-Z])/g, ' $1').replace(/^./, function(str) { return str.toUpperCase(); });
@@ -305,78 +262,29 @@ document.addEventListener("DOMContentLoaded", function() {
         if (earningsChart) {
             earningsChart.destroy();
         }
-        earningsChart = new Chart(earningsCtx, {
-            type: 'bar',
-            data: {
-                labels: data.map(item => item.x),
-                datasets: [{
-                    label: 'Earnings',
-                    data: data.map(item => item.y),
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 2
-                }]
+        earningsChart = new ApexCharts(document.querySelector("#earnings-chart"), {
+            series: [{
+                name: 'Earnings',
+                data: data
+            }],
+            chart: {
+                type: 'bar',
+                height: 400
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Fiscal Date',
-                            color: '#666',
-                            font: {
-                                size: 14
-                            }
-                        },
-                        ticks: {
-                            color: '#666',
-                            font: {
-                                size: 12
-                            }
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Earnings',
-                            color: '#666',
-                            font: {
-                                size: 14
-                            }
-                        },
-                        ticks: {
-                            color: '#666',
-                            font: {
-                                size: 12
-                            },
-                            beginAtZero: true,
-                            max: Math.max(...data.map(item => item.y)) * 1.2
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#666',
-                            font: {
-                                size: 14
-                            }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleFont: {
-                            size: 16
-                        },
-                        bodyFont: {
-                            size: 14
-                        }
-                    }
+            xaxis: {
+                type: 'datetime',
+                categories: data.map(item => item.x),
+                title: {
+                    text: 'Fiscal Date'
+                }
+            },
+            yaxis: {
+                title: {
+                    text: 'Earnings'
                 }
             }
         });
+        earningsChart.render();
     }
 
     // Create the earnings chart with the initial data

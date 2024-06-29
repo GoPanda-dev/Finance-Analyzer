@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'fontawesomefree',
     'analysis',
     'analysis.templatetags.custom_filters',  # Add this line
     'django.contrib.admin',

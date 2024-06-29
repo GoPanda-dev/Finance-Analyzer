@@ -28,7 +28,7 @@
             {% endif %}
             {% endif %}
             <div style="max-width: 100%; height: 400px;">
-                <canvas id="chart"></canvas>
+                <div id="chart"></div>
             </div>
             <form method="get" action="{% url 'stock_view' symbol=symbol %}">
                 <label for="interval">Choose time interval:</label>
@@ -99,7 +99,7 @@
             </button>
             <div id="content-earnings" class="accordion-content">
                 <div class="column-toggles" id="earnings-toggles"></div>
-                <canvas id="earnings-chart"></canvas>
+                <div id="earnings-chart" style="max-height: 400px;"></div>
             </div>
         </div>
     </div>
@@ -109,9 +109,7 @@
 <script type="application/json" id="time_series_data">{{ time_series|escapejs }}</script>
 <script type="application/json" id="fundamental_data">{{ fundamental_data|escapejs }}</script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="{% static 'js/stocks.js' %}"></script>
 <style>
     .accordion-button {
@@ -180,7 +178,7 @@
         overflow-y: auto;
     }
 
-    #earnings-chart {
+    #chart, #earnings-chart {
         max-height: 400px;
     }
 </style>
