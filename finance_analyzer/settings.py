@@ -54,8 +54,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'finance_analyzer.urls'
 
+LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'homepage'
-LOGOUT_REDIRECT_URL = 'homepage'
+LOGOUT_REDIRECT_URL = 'public_homepage'
 
 TEMPLATES = [
     {

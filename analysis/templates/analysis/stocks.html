@@ -103,6 +103,26 @@
             </div>
         </div>
     </div>
+
+    <h2>News</h2>
+    <div class="news-section">
+        {% for news in news_data %}
+            <div class="news-item">
+                {% if news.banner_image %}
+                <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
+                {% endif %}
+                <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
+                <p><strong>Source:</strong> {{ news.source }}</p>
+                <p>{{ news.summary }}</p>
+                <div class="sentiment">
+                    <span class="sentiment-label">Sentiment: </span>
+                    <span class="sentiment-tag {{ news.overall_sentiment_label|lower }}">
+                        {{ news.overall_sentiment_label }}
+                    </span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 </div>
 
 <!-- Embed JSON data using script tags -->
@@ -180,6 +200,72 @@
 
     #chart, #earnings-chart {
         max-height: 400px;
+    }
+
+    .news-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .news-item {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .news-item img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+    }
+
+    .news-item h3 {
+        margin-top: 10px;
+        font-size: 1.2em;
+    }
+
+    .news-item p {
+        margin: 10px 0;
+    }
+
+    .sentiment {
+        display: flex;
+        align-items: center;
+    }
+
+    .sentiment-label {
+        font-weight: bold;
+    }
+
+    .sentiment-tag {
+        margin-left: 5px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        color: #fff;
+    }
+
+    .sentiment-tag.bullish {
+        background-color: #4caf50;
+    }
+
+    .sentiment-tag.somewhat-bullish {
+        background-color: #8bc34a;
+    }
+
+    .sentiment-tag.neutral {
+        background-color: #ffeb3b;
+        color: #000;
+    }
+
+    .sentiment-tag.somewhat-bearish {
+        background-color: #ff9800;
+    }
+
+    .sentiment-tag.bearish {
+        background-color: #f44336;
     }
 </style>
 {% endblock %}

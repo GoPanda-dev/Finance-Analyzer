@@ -20,6 +20,75 @@ logger = logging.getLogger(__name__)
 ALPHA_VANTAGE_API_KEY = 'your_alphavantage_api_key'  # Replace with your Alpha Vantage API key
 ALPHA_VANTAGE_URL = 'https://www.alphavantage.co/query'
 
+def get_news_data(ticker):
+    api_key = 'YOUR_API_KEY'
+    url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={ticker}&apikey={api_key}"
+    print(f"Fetching news data from: {url}")  # Debugging statement
+    response = requests.get(url)
+    print(f"Response status code: {response.status_code}")  # Debugging statement
+    if response.status_code == 200:
+        data = response.json()
+        print(f"News data for {ticker}: {data}")  # Debugging statement
+        return data.get('feed', [])
+    return []
+
+def aggregate_news_data(tickers):
+    aggregated_news = []
+    for ticker in tickers:
+        news_data = get_news_data(ticker)
+        aggregated_news.extend(news_data)
+    return aggregated_news
+
+def get_top_gainers():
+    api_key = 'YOUR_API_KEY'
+    url = f"https://www.alphavantage.co/query?function=TOP_GAINERS_LOSERS&apikey={api_key}"
+    print(f"Fetching top gainers from: {url}")  # Debugging statement
+    response = requests.get(url)
+    print(f"Response status code: {response.status_code}")  # Debugging statement
+    if response.status_code == 200:
+        data = response.json()
+        print(f"Top gainers data: {data}")  # Debugging statement
+        return data.get('top_gainers', [])
+    return []
+
+@login_required(login_url='login')
+def homepage(request):
+    watchlist_items = WatchlistItem.objects.filter(user=request.user)
+    watchlist_tickers = [item.symbol for item in watchlist_items]
+    news_data = aggregate_news_data(watchlist_tickers) if watchlist_tickers else []
+
+    print(f"Watchlist tickers: {watchlist_tickers}")  # Debugging statement
+    print(f"News data: {news_data}")  # Debugging statement
+
+    if request.method == 'POST':
+        form = WatchlistItemForm(request.POST)
+        if form.is_valid():
+            watchlist_item = form.save(commit=False)
+            watchlist_item.user = request.user
+            watchlist_item.save()
+    else:
+        form = WatchlistItemForm()
+
+    context = {
+        'watchlist_items': watchlist_items,
+        'watchlist_item_form': form,
+        'news_data': news_data
+    }
+    return render(request, 'analysis/homepage.html', context)
+
+def public_homepage(request):
+    top_gainers = get_top_gainers()
+    top_gainer_tickers = [gainer['ticker'] for gainer in top_gainers]
+    news_data = aggregate_news_data(top_gainer_tickers)
+
+    print(f"Top gainer tickers: {top_gainer_tickers}")  # Debugging statement
+    print(f"News data: {news_data}")  # Debugging statement
+
+    context = {
+        'news_data': news_data
+    }
+    return render(request, 'analysis/public_homepage.html', context)
+
 def ajax_search(request):
     query = request.GET.get('query', '')
     results = []
@@ -129,21 +198,19 @@ def remove_from_watchlist(request):
             return redirect('homepage')
     return redirect('homepage')
 
-def homepage_view(request):
-    watchlist_items = []
-    if request.user.is_authenticated:
-        watchlist_items = WatchlistItem.objects.filter(user=request.user)
-    return render(request, 'analysis/homepage.html', {
-        'watchlist_items': watchlist_items,
-        'watchlist_item_form': WatchlistItemForm(),
-        'remove_watchlist_item_form': RemoveWatchlistItemForm()
-    })
-
 def search_view(request):
     query = request.GET.get('query')
     if query:
         return redirect('stock_view', symbol=query)
     return render(request, 'analysis/error.html', {'message': 'No query provided.'})
+
+def fetch_news_data(symbol):
+    api_key = 'YOUR_API_KEY'
+    url = f'https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={symbol}&apikey={api_key}'
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json().get('feed', [])
+    return []
 
 def stock_view(request, symbol):
     interval = request.GET.get('interval', 'daily')
@@ -194,6 +261,8 @@ def stock_view(request, symbol):
                 return render(request, 'analysis/error.html', {'message': 'Failed to fetch fundamental data. Please try again later.'})
             cache.set(fundamental_cache_key, fundamental_data, 60 * 60 * 24)  # Cache for 24 hours
 
+        news_data = fetch_news_data(symbol)
+
         in_watchlist = False
         stock_name = fundamental_data['OVERVIEW']['Name'] if 'OVERVIEW' in fundamental_data else 'Unknown'
 
@@ -208,6 +277,7 @@ def stock_view(request, symbol):
         'interval': interval,
         'time_series': json.dumps(time_series),
         'fundamental_data': json.dumps(fundamental_data),
+        'news_data': news_data,
         'cached': cached,
         'in_watchlist': in_watchlist,
         'stock_name': stock_name,
