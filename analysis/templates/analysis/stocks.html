@@ -85,7 +85,7 @@
                     </div>
                     <div class="overview-item">
                         <span class="overview-title">Market Capitalization:</span>
-                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.MarketCapitalization }}</span>
+                        <span class="overview-value" id="market-cap" data-value="{{ fundamental_overview_data.OVERVIEW.MarketCapitalization }}">{{ fundamental_overview_data.OVERVIEW.MarketCapitalization }}</span>
                     </div>
                     <div class="overview-item">
                         <span class="overview-title">PE Ratio:</span>
@@ -195,25 +195,34 @@
 <style>
     /* General styles */
     .main-content {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap; /* Ensure content wraps on smaller screens */
-        margin: 0 -10px; /* Adjust for padding */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+        gap: 20px;
+        padding: 10px;
     }
     
+    /* Ensure content wraps on smaller screens */
     .left-half, .right-half {
-        width: calc(50% - 20px); /* Adjust for padding */
-        box-sizing: border-box; /* Ensure padding and borders are included in the element's total width and height */
         padding: 10px;
+        box-sizing: border-box; /* Ensure padding and borders are included in the element's total width and height */
     }
     
     /* Media query for mobile devices */
     @media (max-width: 768px) {
-        .left-half, .right-half {
-            width: 100%;
-            padding: 10px 0; /* Optional: Adjust padding for better spacing on mobile */
+        .main-content {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto;
+        }
+        .right-half {
+            order: 1;
+        }
+        .left-half {
+            order: 2;
         }
     }
+    
+    
     
 
     #company-overview {

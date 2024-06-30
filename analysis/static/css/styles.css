@@ -52,7 +52,7 @@ th {
     max-width: 800px;
     margin: 20px auto;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background-color: #ffffff;
 }
@@ -123,7 +123,7 @@ th {
     max-width: 800px;
     margin: 20px auto;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background-color: #ffffff;
 }
@@ -193,7 +193,7 @@ th {
     max-width: 800px;
     margin: 20px auto;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background-color: #ffffff;
 }
@@ -248,6 +248,11 @@ th {
     background-color: #f44336; /* Red */
 }
 
+.accordion {
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+}
 
 .accordion-header {
     display: flex;
@@ -255,7 +260,6 @@ th {
     justify-content: space-between;
     background-color: #f1f1f1;
     border-bottom: 1px solid #ddd;
-    border-radius: 4px 4px 0 0;
 }
 
 .accordion-button {
@@ -268,7 +272,7 @@ th {
     font-size: 16px;
     transition: background-color 0.4s, box-shadow 0.4s;
     cursor: pointer;
-    border-radius: 0;
+    border-radius: 5px 5px;
     border-right: 1px solid #ddd;
 }
 
@@ -298,7 +302,7 @@ th {
     margin-bottom: 20px;
     background-color: #f9f9f9;
     padding: 15px;
-    border-radius: 4px;
+    border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -314,7 +318,7 @@ th {
     align-items: center;
     background-color: #f1f1f1;
     padding: 5px 10px;
-    border-radius: 4px;
+    border-radius: 5px;
     transition: background-color 0.4s, box-shadow 0.4s;
 }
 
@@ -344,7 +348,7 @@ th {
     height: 250px; /* Adjust height as needed */
     background-size: cover;
     background-position: center;
-    border-radius: 15px;
+    border-radius: 5px;
     overflow: hidden;
     margin-left: auto;
     margin-right: auto;

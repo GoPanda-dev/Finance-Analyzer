@@ -127,7 +127,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function formatLargeNumber(value) {
-        if (value >= 1e9) {
+        if (value >= 1e12) {
+            return (value / 1e12).toFixed(2) + ' T';
+        } else if (value >= 1e9) {
             return (value / 1e9).toFixed(2) + ' B';
         } else if (value >= 1e6) {
             return (value / 1e6).toFixed(2) + ' M';
@@ -343,4 +345,14 @@ document.addEventListener("DOMContentLoaded", function() {
     })).sort((a, b) => new Date(a.x) - new Date(b.x));
 
     createEarningsChart(earningsData);
+
+    const marketCapElement = document.getElementById('market-cap');
+    if (marketCapElement) {
+        const rawValue = parseFloat(marketCapElement.textContent.trim());
+        if (!isNaN(rawValue)) {
+            marketCapElement.textContent = formatLargeNumber(rawValue);
+        } else {
+            marketCapElement.textContent = "N/A";
+        }
+    }
 });
