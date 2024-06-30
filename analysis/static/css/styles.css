@@ -46,38 +46,58 @@ th {
     background-color: #f2f2f2;
 }
 
-
 .news-section {
+    flex-wrap: wrap;
     display: grid;
-    gap: 20px;
+    gap: 10px;
     margin-top: 20px;
     grid-template-columns: repeat(4, 1fr); /* 4 columns on desktop */
 }
 
 .news-item {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    width: calc(33.333% - 20px);
+    height: 300px; /* Adjust height as needed */
+    background-size: cover;
+    background-position: center;
+    border-radius: 15px;
     overflow: hidden;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+    padding: 120px;
 }
 
-.news-item h4 a {
-    color: #333;
+.news-item:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3);
+}
+
+.news-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+    transition: background 0.3s;
+}
+
+.news-content p,
+.news-content h3,
+.news-content .sentiment {
+    margin: 2rm;
+}
+
+.news-content a {
+    color: white;
     text-decoration: none;
     transition: color 0.3s;
 }
 
-.news-item h4 a:hover {
-    color: #007bff;
-}
-
-.news-item p {
-    margin: 10px 0;
+.news-content a:hover {
+    color: #ffd700; /* Gold color for hover effect */
 }
 
 .sentiment {
@@ -89,9 +109,10 @@ th {
 }
 
 .sentiment-tag {
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.2);
+    text-transform: capitalize;
 }
 
 .sentiment-tag.bullish {
@@ -113,14 +134,6 @@ th {
 
 .sentiment-tag.bearish {
     background-color: #dc3545;
-}
-
-.news-banner {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px;
-    margin-top: 10px;
-    object-fit: cover;
 }
 
 @media (max-width: 1024px) {

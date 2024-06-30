@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }],
             chart: {
                 type: 'bar',
-                height: 350
+                height: 400
             },
             plotOptions: {
                 bar: {

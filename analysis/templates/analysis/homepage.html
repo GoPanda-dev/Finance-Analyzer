@@ -23,37 +23,108 @@
     <h3>Latest News</h3>
     <div class="news-section">
         {% for news in news_data %}
-            <div class="news-item">
-                <p><strong>Source:</strong> {{ news.source }}</p>
-                <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
-                {% if news.banner_image %}
-                <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
-                {% endif %}
-                <p>{{ news.summary }}</p>
-                <div class="sentiment">
-                    <span class="sentiment-label">Sentiment: </span>
-                    <span class="sentiment-tag {{ news.overall_sentiment_label|lower }}">
-                        {{ news.overall_sentiment_label }}
-                    </span>
+            <div class="news-item" style="background-image: url('{{ news.banner_image }}');">
+                <div class="news-content">
+                    <p><strong>Source:</strong> {{ news.source }}</p>
+                    <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
+                    <p>{{ news.summary }}</p>
+                    <div class="sentiment">
+                        <span class="sentiment-label">Sentiment: </span>
+                        <span class="sentiment-tag {{ news.overall_sentiment_label|lower }}">
+                            {{ news.overall_sentiment_label }}
+                        </span>
+                    </div>
                 </div>
             </div>
         {% endfor %}
     </div>
+    
 {% else %}
     <p>Please <a href="{% url 'login' %}">login</a> to manage your watchlist.</p>
 
     <h3>Top Gainers News</h3>
     <div class="news-section">
         {% for news in news_data %}
-            <div class="news-item">
-                <p><strong>Source:</strong> {{ news.source }}</p>
-                <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
-                {% if news.banner_image %}
-                <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
-                {% endif %}
-                <p>{{ news.summary }}</p>
+            <div class="news-item" style="background-image: url('{{ news.banner_image }}');">
+                <div class="news-content">
+                    <p><strong>Source:</strong> {{ news.source }}</p>
+                    <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
+                    <p>{{ news.summary }}</p>
+                </div>
             </div>
         {% endfor %}
     </div>
 {% endif %}
+
+<style>
+    .news-section {
+        flex-wrap: wrap;
+        display: grid;
+        gap: 10px;
+        margin-top: 20px;
+        grid-template-columns: repeat(4, 1fr); /* 4 columns on desktop */
+    }
+    
+    .news-item {
+        position: relative;
+        width: calc(33.333% - 20px);
+        height: 300px; /* Adjust height as needed */
+        background-size: cover;
+        background-position: center;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s, box-shadow 0.3s;
+        padding: 120px;
+    }
+    
+    .news-item:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .news-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 20px;
+        backdrop-filter: blur(5px);
+        transition: background 0.3s;
+    }
+    
+    .news-content p,
+    .news-content h3,
+    .news-content .sentiment {
+        margin: 2rm;
+    }
+    
+    .news-content a {
+        color: white;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    
+    .news-content a:hover {
+        color: #ffd700; /* Gold color for hover effect */
+    }
+    
+    .sentiment {
+        margin-top: 10px;
+    }
+    
+    .sentiment-label {
+        font-weight: bold;
+    }
+    
+    .sentiment-tag {
+        padding: 5px 10px;
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.2);
+        text-transform: capitalize;
+    }
+    
+</style>
 {% endblock %}

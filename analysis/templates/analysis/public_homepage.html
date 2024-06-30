@@ -8,13 +8,12 @@
 <h3>Top Gainers News</h3>
 <div class="news-section">
     {% for news in news_data %}
-        <div class="news-item">
-            <p><strong>Source:</strong> {{ news.source }}</p>
-            <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
-            {% if news.banner_image %}
-            <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
-            {% endif %}
-            <p>{{ news.summary }}</p>
+        <div class="news-item" style="background-image: url('{{ news.banner_image }}');">
+            <div class="news-content">
+                <p><strong>Source:</strong> {{ news.source }}</p>
+                <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
+                <p>{{ news.summary }}</p>
+            </div>
         </div>
     {% endfor %}
 </div>

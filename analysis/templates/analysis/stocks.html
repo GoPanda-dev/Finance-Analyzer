@@ -28,7 +28,7 @@
             {% endif %}
             {% endif %}
             <div style="max-width: 100%; height: 400px;">
-                <div id="chart"></div>
+                <div style="z-index: -1;" id="chart"></div>
             </div>
         </div>
 
@@ -90,16 +90,14 @@
             </div>
         </div>
     </div>
-
-    <h2>News</h2>
-    <div class="news-section">
-        {% for news in news_data %}
-            <div class="news-item">
+</div>
+<h2>News</h2>
+<div class="news-section">
+    {% for news in news_data %}
+        <div class="news-item" style="background-image: url('{{ news.banner_image }}');">
+            <div class="news-content">
                 <p><strong>Source:</strong> {{ news.source }}</p>
                 <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
-                {% if news.banner_image %}
-                <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
-                {% endif %}
                 <p>{{ news.summary }}</p>
                 <div class="sentiment">
                     <span class="sentiment-label">Sentiment: </span>
@@ -108,9 +106,10 @@
                     </span>
                 </div>
             </div>
-        {% endfor %}
-    </div>
+        </div>
+    {% endfor %}
 </div>
+
 
 <!-- Embed JSON data using script tags -->
 <script type="application/json" id="time_series_data">{{ time_series|escapejs }}</script>
@@ -189,7 +188,7 @@
     }
 
     #chart, #earnings-chart {
-        max-height: 400px;
+        max-height: 500px;
     }
 
     .gridjs-container {
@@ -205,53 +204,6 @@
         text-overflow: ellipsis;
         overflow: hidden;
         max-width: 150px;
-    }
-
-    .news-section {
-        margin-top: 20px;
-    }
-
-    .news-item {
-        margin-bottom: 20px;
-    }
-
-    .news-item img {
-        max-width: 100%;
-        height: auto;
-    }
-
-    .sentiment {
-        margin-top: 10px;
-    }
-
-    .sentiment-tag {
-        padding: 5px;
-        border-radius: 3px;
-    }
-
-    .sentiment-tag.bullish {
-        background-color: #4caf50;
-        color: white;
-    }
-
-    .sentiment-tag.somewhat-bullish {
-        background-color: #8bc34a;
-        color: white;
-    }
-
-    .sentiment-tag.neutral {
-        background-color: #ffc107;
-        color: black;
-    }
-
-    .sentiment-tag.somewhat-bearish {
-        background-color: #ff9800;
-        color: white;
-    }
-
-    .sentiment-tag.bearish {
-        background-color: #f44336;
-        color: white;
     }
 </style>
 {% endblock %}

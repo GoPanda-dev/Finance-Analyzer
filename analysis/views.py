@@ -55,7 +55,16 @@ def get_top_gainers():
 def homepage(request):
     watchlist_items = WatchlistItem.objects.filter(user=request.user)
     watchlist_tickers = [item.symbol for item in watchlist_items]
-    news_data = aggregate_news_data(watchlist_tickers) if watchlist_tickers else []
+
+    if watchlist_tickers:
+        news_data = aggregate_news_data(watchlist_tickers)
+        print(f"Aggregating news data for watchlist tickers: {watchlist_tickers}")
+    else:
+        top_gainers = get_top_gainers()
+        top_gainer_tickers = [gainer['ticker'] for gainer in top_gainers]
+        news_data = aggregate_news_data(top_gainer_tickers)
+        print(f"Watchlist is empty. Aggregating news data for top gainers: {top_gainer_tickers}")
+
 
     print(f"Watchlist tickers: {watchlist_tickers}")  # Debugging statement
     print(f"News data: {news_data}")  # Debugging statement
