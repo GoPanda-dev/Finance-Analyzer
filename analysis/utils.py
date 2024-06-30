@@ -22,9 +22,19 @@ def fetch_stock_data(symbol, interval):
     api_key = 'YOUR_API_KEY'
     base_url = 'https://www.alphavantage.co/query?'
     
-    function = 'TIME_SERIES_INTRADAY' if 'min' in interval else 'TIME_SERIES_' + interval.upper()
+    if 'min' in interval:
+        function = 'TIME_SERIES_INTRADAY'
+    elif interval == 'daily':
+        function = 'TIME_SERIES_DAILY'
+    elif interval == 'weekly':
+        function = 'TIME_SERIES_WEEKLY'
+    elif interval == 'monthly':
+        function = 'TIME_SERIES_MONTHLY'
+    else:
+        function = 'TIME_SERIES_INTRADAY'
     
-    url = f"{base_url}function={function}&symbol={symbol}&interval={interval}&apikey={api_key}"
+    url = f"{base_url}function={function}&symbol={symbol}&interval={interval}&apikey={api_key}&outputsize=full"
+    
     response = requests.get(url)
     
     if response.status_code == 200:

@@ -146,7 +146,7 @@ def search_view(request):
     return render(request, 'analysis/error.html', {'message': 'No query provided.'})
 
 def stock_view(request, symbol):
-    interval = request.GET.get('interval', '1min')
+    interval = request.GET.get('interval', 'daily')
     
     stock_cache_key = f'{symbol}_{interval}_stock_data'
     fundamental_cache_key = f'{symbol}_fundamental_data'
@@ -161,8 +161,24 @@ def stock_view(request, symbol):
                 return render(request, 'analysis/error.html', {'message': raw_data['Information']})
             if not raw_data:
                 return render(request, 'analysis/error.html', {'message': 'Failed to fetch stock data. Please try again later.'})
-            time_series = raw_data.get(f'Time Series ({interval})', {})
-            if not time_series:
+            # Determine the correct key for time series data
+            if interval == '1min':
+                time_series = raw_data.get('Time Series (1min)', {})
+            elif interval == '5min':
+                time_series = raw_data.get('Time Series (5min)', {})
+            elif interval == '15min':
+                time_series = raw_data.get('Time Series (15min)', {})
+            elif interval == '30min':
+                time_series = raw_data.get('Time Series (30min)', {})
+            elif interval == '60min':
+                time_series = raw_data.get('Time Series (60min)', {})
+            elif interval == 'daily':
+                time_series = raw_data.get('Time Series (Daily)', {})
+            elif interval == 'weekly':
+                time_series = raw_data.get('Weekly Time Series', {})
+            elif interval == 'monthly':
+                time_series = raw_data.get('Monthly Time Series', {})
+            else:
                 return render(request, 'analysis/error.html', {'message': 'No time series data available. Please try again later.'})
             cache_stock_data(symbol, interval, time_series)
             cache.set(stock_cache_key, time_series, 60 * 60)  # Cache for 1 hour
