@@ -69,11 +69,12 @@
 
             <div class="company-overview-container">
                 <h2>{{ stock_name }} ({{ symbol }}) Overview</h2>
-                <div class="overview-grid">
-                    <div class="overview-item">
-                        <span class="overview-title">Description:</span>
+                <div class="overview-grid-desc">
+                    <div class="overview-item-desc">
                         <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.Description }}</span>
                     </div>
+                </div>
+                <div class="overview-grid">
                     <div class="overview-item">
                         <span class="overview-title">Sector:</span>
                         <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.Sector }}</span>
@@ -127,49 +128,42 @@
     </div>
 
     <div class="accordion">
-        <div class="accordion-item">
+        <div class="accordion-header">
             <button id="button-income-statement" class="accordion-button" aria-expanded="false" aria-controls="content-income-statement">
                 Income Statement
                 <span class="icon" aria-hidden="true"></span>
             </button>
-            <div id="content-income-statement" class="accordion-content">
-                <div class="column-toggles" id="income-statement-toggles"></div>
-                <div id="income-statement-grid"></div>
-            </div>
-        </div>
-        <div class="accordion-item">
             <button id="button-balance-sheet" class="accordion-button" aria-expanded="false" aria-controls="content-balance-sheet">
                 Balance Sheet
                 <span class="icon" aria-hidden="true"></span>
             </button>
-            <div id="content-balance-sheet" class="accordion-content">
-                <div class="column-toggles" id="balance-sheet-toggles"></div>
-                <div id="balance-sheet-grid"></div>
-            </div>
-        </div>
-        <div class="accordion-item">
             <button id="button-cash-flow" class="accordion-button" aria-expanded="false" aria-controls="content-cash-flow">
                 Cash Flow
                 <span class="icon" aria-hidden="true"></span>
             </button>
-            <div id="content-cash-flow" class="accordion-content">
-                <div class="column-toggles" id="cash-flow-toggles"></div>
-                <div id="cash-flow-grid"></div>
-            </div>
-        </div>
-        <div class="accordion-item">
             <button id="button-earnings" class="accordion-button" aria-expanded="false" aria-controls="content-earnings">
                 Earnings
                 <span class="icon" aria-hidden="true"></span>
             </button>
-            <div id="content-earnings" class="accordion-content">
-                <div class="column-toggles" id="earnings-toggles"></div>
-                <div id="earnings-chart" style="max-height: 400px;"></div>
-            </div>
+        </div>
+        <div class="accordion-content" id="content-income-statement">
+            <div class="column-toggles" id="income-statement-toggles"></div>
+            <div id="income-statement-grid"></div>
+        </div>
+        <div class="accordion-content" id="content-balance-sheet">
+            <div class="column-toggles" id="balance-sheet-toggles"></div>
+            <div id="balance-sheet-grid"></div>
+        </div>
+        <div class="accordion-content" id="content-cash-flow">
+            <div class="column-toggles" id="cash-flow-toggles"></div>
+            <div id="cash-flow-grid"></div>
+        </div>
+        <div class="accordion-content" id="content-earnings">
+            <div class="column-toggles" id="earnings-toggles"></div>
+            <div id="earnings-chart" style="max-height: 400px;"></div>
         </div>
     </div>
-</div>
-
+    
 <h2>News</h2>
 <div class="news-section">
     {% for news in news_data %}
@@ -199,54 +193,6 @@
 <script src="{% static 'js/stocks.js' %}"></script>
 <link href="https://cdn.jsdelivr.net/npm/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
 <style>
-    .accordion-button {
-        width: 100%;
-        text-align: left;
-        background-color: #f1f1f1;
-        border: none;
-        outline: none;
-        padding: 18px;
-        font-size: 15px;
-        transition: 0.4s;
-        cursor: pointer;
-        display: block;
-        border-bottom: 1px solid #ddd;
-        border-radius: 0; /* Remove rounding */
-    }
-
-    .accordion-button:hover,
-    .accordion-button:focus {
-        background-color: #ccc;
-    }
-
-    .accordion-content {
-        display: none;
-        padding: 18px;
-        background-color: white;
-        border-top: none;
-        overflow: hidden;
-    }
-
-    .toggle-container {
-        margin-bottom: 20px;
-    }
-
-    .column-toggles {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    .column-toggles .toggle {
-        display: flex;
-        align-items: center;
-    }
-
-    .column-toggles label {
-        margin-left: 5px;
-    }
-
     /* General styles */
     .main-content {
         display: flex;
