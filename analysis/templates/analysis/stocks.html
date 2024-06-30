@@ -30,24 +30,11 @@
             <div style="max-width: 100%; height: 400px;">
                 <div id="chart"></div>
             </div>
-            <form method="get" action="{% url 'stock_view' symbol=symbol %}">
-                <label for="interval">Choose time interval:</label>
-                <select name="interval" id="interval" onchange="this.form.submit()">
-                    <option value="1min" {% if interval == '1min' %}selected{% endif %}>1min</option>
-                    <option value="5min" {% if interval == '5min' %}selected{% endif %}>5min</option>
-                    <option value="15min" {% if interval == '15min' %}selected{% endif %}>15min</option>
-                    <option value="30min" {% if interval == '30min' %}selected{% endif %}>30min</option>
-                    <option value="60min" {% if interval == '60min' %}selected{% endif %}>60min</option>
-                    <option value="daily" {% if interval == 'daily' %}selected{% endif %}>Daily</option>
-                    <option value="weekly" {% if interval == 'weekly' %}selected{% endif %}>Weekly</option>
-                    <option value="monthly" {% if interval == 'monthly' %}selected{% endif %}>Monthly</option>
-                </select>
-            </form>
         </div>
 
         <div class="right-half">
             <div id="company-overview">
-                <table id="table-company-overview"></table>
+                <div id="company-overview-grid"></div>
             </div>
         </div>
 
@@ -69,7 +56,7 @@
             </button>
             <div id="content-income-statement" class="accordion-content">
                 <div class="column-toggles" id="income-statement-toggles"></div>
-                <table id="table-income-statement"></table>
+                <div id="income-statement-grid"></div>
             </div>
         </div>
         <div class="accordion-item">
@@ -79,7 +66,7 @@
             </button>
             <div id="content-balance-sheet" class="accordion-content">
                 <div class="column-toggles" id="balance-sheet-toggles"></div>
-                <table id="table-balance-sheet"></table>
+                <div id="balance-sheet-grid"></div>
             </div>
         </div>
         <div class="accordion-item">
@@ -89,7 +76,7 @@
             </button>
             <div id="content-cash-flow" class="accordion-content">
                 <div class="column-toggles" id="cash-flow-toggles"></div>
-                <table id="table-cash-flow"></table>
+                <div id="cash-flow-grid"></div>
             </div>
         </div>
         <div class="accordion-item">
@@ -108,11 +95,11 @@
     <div class="news-section">
         {% for news in news_data %}
             <div class="news-item">
+                <p><strong>Source:</strong> {{ news.source }}</p>
+                <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
                 {% if news.banner_image %}
                 <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
                 {% endif %}
-                <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
-                <p><strong>Source:</strong> {{ news.source }}</p>
                 <p>{{ news.summary }}</p>
                 <div class="sentiment">
                     <span class="sentiment-label">Sentiment: </span>
@@ -130,7 +117,9 @@
 <script type="application/json" id="fundamental_data">{{ fundamental_data|escapejs }}</script>
 
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.jsdelivr.net/npm/gridjs/dist/gridjs.umd.js"></script>
 <script src="{% static 'js/stocks.js' %}"></script>
+<link href="https://cdn.jsdelivr.net/npm/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
 <style>
     .accordion-button {
         width: 100%;
@@ -196,76 +185,73 @@
     #company-overview {
         max-height: 400px;
         overflow-y: auto;
+        overflow-x: hidden;
     }
 
     #chart, #earnings-chart {
         max-height: 400px;
     }
 
+    .gridjs-container {
+        font-size: 12px;
+    }
+
+    .gridjs-header .gridjs-th {
+        white-space: nowrap;
+    }
+
+    .gridjs-td {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        max-width: 150px;
+    }
+
     .news-section {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
+        margin-top: 20px;
     }
 
     .news-item {
-        border: 1px solid #ddd;
-        padding: 15px;
-        border-radius: 8px;
-        background-color: #fff;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
     }
 
     .news-item img {
         max-width: 100%;
         height: auto;
-        border-radius: 4px;
-    }
-
-    .news-item h3 {
-        margin-top: 10px;
-        font-size: 1.2em;
-    }
-
-    .news-item p {
-        margin: 10px 0;
     }
 
     .sentiment {
-        display: flex;
-        align-items: center;
-    }
-
-    .sentiment-label {
-        font-weight: bold;
+        margin-top: 10px;
     }
 
     .sentiment-tag {
-        margin-left: 5px;
-        padding: 2px 8px;
-        border-radius: 12px;
-        color: #fff;
+        padding: 5px;
+        border-radius: 3px;
     }
 
     .sentiment-tag.bullish {
         background-color: #4caf50;
+        color: white;
     }
 
     .sentiment-tag.somewhat-bullish {
         background-color: #8bc34a;
+        color: white;
     }
 
     .sentiment-tag.neutral {
-        background-color: #ffeb3b;
-        color: #000;
+        background-color: #ffc107;
+        color: black;
     }
 
     .sentiment-tag.somewhat-bearish {
         background-color: #ff9800;
+        color: white;
     }
 
     .sentiment-tag.bearish {
         background-color: #f44336;
+        color: white;
     }
 </style>
 {% endblock %}

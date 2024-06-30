@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var chart;
     var earningsChart;
     var chartType = 'line'; // Default chart type
+    var selectedInterval = new URLSearchParams(window.location.search).get('interval') || 'daily';
 
     // Get the data from the script tags
     var symbol = document.querySelector('.content-wrapper').getAttribute('data-symbol');
@@ -19,10 +20,6 @@ document.addEventListener("DOMContentLoaded", function() {
     var decodedTimeSeriesDataContent = decodeUnicodeEscape(timeSeriesDataContent);
     var decodedFundamentalDataContent = decodeUnicodeEscape(fundamentalDataContent);
 
-    // Print the raw JSON data to the console for debugging
-    console.log('Decoded Time Series Data:', decodedTimeSeriesDataContent);
-    console.log('Decoded Fundamental Data:', decodedFundamentalDataContent);
-
     try {
         var timeSeriesData = JSON.parse(decodedTimeSeriesDataContent);
         var fundamentalData = JSON.parse(decodedFundamentalDataContent);
@@ -31,12 +28,7 @@ document.addEventListener("DOMContentLoaded", function() {
         return; // Exit if JSON parsing fails
     }
 
-    // Print the parsed JSON data to the console for debugging
-    console.log('Parsed Time Series Data:', timeSeriesData);
-    console.log('Parsed Fundamental Data:', fundamentalData);
-
     function createChart(data, type = 'line') {
-        console.log('Chart Data:', data); // Log the chart data to ensure it is correctly formatted
         if (chart) {
             chart.destroy();
         }
@@ -55,16 +47,33 @@ document.addEventListener("DOMContentLoaded", function() {
                 toolbar: {
                     show: true,
                     tools: {
-                        customIcons: [{
-                            icon: '<i class="fa-solid fa-chart-line"></i>',
-                            index: -1,
-                            title: 'Toggle Line/Candlestick',
-                            class: 'custom-icon',
-                            click: function(chart, options, e) {
-                                chartType = chartType === 'candlestick' ? 'line' : 'candlestick';
-                                createChart(data, chartType);
-                            }
-                        }]
+                        customIcons: [
+                            {
+                                icon: `<select id="interval-selector" style="margin-left: 5px; margin-right: 15px; font-size: 12px;">
+                                        <option value="1min" ${selectedInterval === '1min' ? 'selected' : ''}>1min</option>
+                                        <option value="5min" ${selectedInterval === '5min' ? 'selected' : ''}>5min</option>
+                                        <option value="15min" ${selectedInterval === '15min' ? 'selected' : ''}>15min</option>
+                                        <option value="30min" ${selectedInterval === '30min' ? 'selected' : ''}>30min</option>
+                                        <option value="60min" ${selectedInterval === '60min' ? 'selected' : ''}>60min</option>
+                                        <option value="daily" ${selectedInterval === 'daily' ? 'selected' : ''}>Daily</option>
+                                        <option value="weekly" ${selectedInterval === 'weekly' ? 'selected' : ''}>Weekly</option>
+                                        <option value="monthly" ${selectedInterval === 'monthly' ? 'selected' : ''}>Monthly</option>
+                                      </select>`,
+                                index: -1,
+                                title: 'Change Interval',
+                                class: 'custom-interval-selector',
+                            },
+                            {
+                                icon: '<i class="fa-solid fa-chart-line"></i>',
+                                index: -1,
+                                title: 'Toggle Line/Candlestick',
+                                class: 'custom-icon',
+                                click: function(chart, options, e) {
+                                    chartType = chartType === 'candlestick' ? 'line' : 'candlestick';
+                                    createChart(data, chartType);
+                                }
+                            },
+                        ]
                     }
                 }
             },
@@ -95,9 +104,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
         chart = new ApexCharts(document.querySelector("#chart"), options);
         chart.render();
+
+        document.getElementById('interval-selector').addEventListener('change', function() {
+            var selectedInterval = this.value;
+            window.location.href = `?interval=${selectedInterval}`;
+        });
     }
 
-    // Create the chart with the initial data
     var dates = Object.keys(timeSeriesData).sort((a, b) => new Date(a) - new Date(b));
     var formattedData = dates.map(date => ({
         x: new Date(date),
@@ -113,69 +126,86 @@ document.addEventListener("DOMContentLoaded", function() {
         return key.replace(/([A-Z])/g, ' $1').replace(/^./, function(str) { return str.toUpperCase(); });
     }
 
-    function createTableFromFlatJSON(json) {
-        if (json.Information) {
-            return `<tr><td colspan="2">${json.Information}</td></tr>`;
+    function formatLargeNumber(value) {
+        if (value >= 1e9) {
+            return (value / 1e9).toFixed(2) + ' B';
+        } else if (value >= 1e6) {
+            return (value / 1e6).toFixed(2) + ' M';
+        } else {
+            return value.toFixed(2);
         }
-        let table = "<tr><th>Key</th><th>Value</th></tr>";
-        for (let key in json) {
-            table += `<tr><td>${formatKeyName(key)}</td><td>${json[key]}</td></tr>`;
-        }
-        return table;
     }
 
-    function createTableFromNestedJSON(json, nestedKey) {
+    function createGridFromFlatJSON(json, containerId) {
         if (json.Information) {
-            return `<tr><td colspan="2">${json.Information}</td></tr>`;
+            return `<div>${json.Information}</div>`;
+        }
+        const columns = ['Key', 'Value'];
+        const data = Object.keys(json).map(key => [formatKeyName(key), json[key]]);
+        
+        new gridjs.Grid({
+            columns: columns,
+            data: data,
+            sort: true,
+            search: true
+        }).render(document.getElementById(containerId));
+    }
+
+    function createGridFromNestedJSON(json, nestedKey, containerId) {
+        if (json.Information) {
+            return `<div>${json.Information}</div>`;
         }
         if (!json[nestedKey] || json[nestedKey].length === 0) {
-            return `<tr><td colspan="2">No data available</td></tr>`;
+            return `<div>No data available</div>`;
         }
         let data = json[nestedKey];
         data.sort((a, b) => new Date(b.fiscalDateEnding) - new Date(a.fiscalDateEnding));
 
-        let table = "<tr><th>Key</th>";
-        data.forEach(item => {
-            table += `<th>${item.fiscalDateEnding}</th>`;
-        });
-        table += "</tr>";
-
+        const columns = ['Key', ...data.map(item => item.fiscalDateEnding)];
         const keys = Object.keys(data[0]);
-        keys.forEach(key => {
-            table += `<tr><td>${formatKeyName(key)}</td>`;
-            data.forEach(item => {
+        const gridData = keys.map(key => {
+            return [formatKeyName(key), ...data.map(item => {
                 let value = item[key];
                 if (value && !isNaN(value) && key !== "fiscalDateEnding" && key !== "reportedDate" && !key.includes("EPS")) {
-                    value = parseFloat(value).toFixed(2);
+                    value = formatLargeNumber(parseFloat(value));
                 }
-                table += `<td>${value}</td>`;
-            });
-            table += "</tr>";
+                return value;
+            })];
         });
 
-        return table;
+        new gridjs.Grid({
+            columns: columns,
+            data: gridData,
+            sort: true,
+            search: true,
+            style: {
+                td: {
+                    'white-space': 'nowrap',
+                    'text-overflow': 'ellipsis',
+                    'overflow': 'hidden',
+                    'max-width': '150px'
+                }
+            }
+        }).render(document.getElementById(containerId));
     }
 
     function toggleDataType() {
         const selectedType = document.getElementById('toggle-data').value;
 
-        const incomeStatementTable = document.getElementById('table-income-statement');
-        const balanceSheetTable = document.getElementById('table-balance-sheet');
-        const cashFlowTable = document.getElementById('table-cash-flow');
+        const incomeStatementGrid = document.getElementById('income-statement-grid');
+        const balanceSheetGrid = document.getElementById('balance-sheet-grid');
+        const cashFlowGrid = document.getElementById('cash-flow-grid');
 
-        if (incomeStatementTable) {
-            incomeStatementTable.innerHTML = createTableFromNestedJSON(fundamentalData.INCOME_STATEMENT, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
-            createRowToggles('table-income-statement', 'income-statement-toggles');
+        if (incomeStatementGrid) {
+            createGridFromNestedJSON(fundamentalData.INCOME_STATEMENT, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports', 'income-statement-grid');
         }
 
-        if (balanceSheetTable) {
-            balanceSheetTable.innerHTML = createTableFromNestedJSON(fundamentalData.BALANCE_SHEET, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
-            createRowToggles('table-balance-sheet', 'balance-sheet-toggles');
+        if (balanceSheetGrid) {
+            createGridFromNestedJSON(fundamentalData.BALANCE_SHEET, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports', 'balance-sheet-grid');
         }
 
-        if (cashFlowTable) {
-            cashFlowTable.innerHTML = createTableFromNestedJSON(fundamentalData.CASH_FLOW, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports');
-            createRowToggles('table-cash-flow', 'cash-flow-toggles');
+        if (cashFlowGrid) {
+            createGridFromNestedJSON(fundamentalData.CASH_FLOW, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports', 'cash-flow-grid');
         }
 
         if (fundamentalData.EARNINGS) {
@@ -188,44 +218,9 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    function createRowToggles(tableId, toggleContainerId) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
-
-        const toggleContainer = document.getElementById(toggleContainerId);
-        toggleContainer.innerHTML = ''; // Clear any existing toggles
-
-        const rows = table.querySelectorAll('tr');
-        rows.forEach((row, index) => {
-            if (index === 0) return; // Skip the header row
-            const keyCell = row.querySelector('td:first-child');
-            if (!keyCell) return;
-
-            const uniqueId = `${tableId}-toggle-${index}-${Math.random().toString(36).substr(2, 9)}`;
-            const toggle = document.createElement('input');
-            toggle.type = 'checkbox';
-            toggle.checked = true;
-            toggle.id = uniqueId;
-            toggle.addEventListener('change', () => {
-                row.style.display = toggle.checked ? '' : 'none';
-            });
-
-            const label = document.createElement('label');
-            label.htmlFor = uniqueId;
-            label.innerText = keyCell.innerText;
-
-            const div = document.createElement('div');
-            div.className = 'toggle';
-            div.appendChild(toggle);
-            div.appendChild(label);
-
-            toggleContainer.appendChild(div);
-        });
-    }
-
-    const companyOverviewTable = document.getElementById('table-company-overview');
-    if (companyOverviewTable) {
-        companyOverviewTable.innerHTML = createTableFromFlatJSON(fundamentalData.OVERVIEW);
+    const companyOverviewGrid = document.getElementById('company-overview-grid');
+    if (companyOverviewGrid) {
+        createGridFromFlatJSON(fundamentalData.OVERVIEW, 'company-overview-grid');
     }
 
     toggleDataType();
@@ -258,7 +253,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     function createEarningsChart(data) {
-        console.log('Earnings Chart Data:', data); // Log the earnings chart data to ensure it is correctly formatted
         if (earningsChart) {
             earningsChart.destroy();
         }
@@ -287,7 +281,6 @@ document.addEventListener("DOMContentLoaded", function() {
         earningsChart.render();
     }
 
-    // Create the earnings chart with the initial data
     const earningsData = fundamentalData.EARNINGS.annualEarnings.map(item => ({
         x: item.fiscalDateEnding,
         y: parseFloat(item.reportedEPS)
