@@ -273,7 +273,17 @@ def stock_view(request, symbol):
         news_data = fetch_news_data(symbol)
 
         in_watchlist = False
-        stock_name = fundamental_data['OVERVIEW']['Name'] if 'OVERVIEW' in fundamental_data else 'Unknown'
+        stock_name = fundamental_data.get('OVERVIEW', {}).get('Name', 'Unknown')
+        
+        # Extract analyst ratings
+        overview_data = fundamental_data.get('OVERVIEW', {})
+        analyst_ratings = {
+            'strong_buy': int(overview_data.get('AnalystRatingStrongBuy', 0)),
+            'buy': int(overview_data.get('AnalystRatingBuy', 0)),
+            'hold': int(overview_data.get('AnalystRatingHold', 0)),
+            'sell': int(overview_data.get('AnalystRatingSell', 0)),
+            'strong_sell': int(overview_data.get('AnalystRatingStrongSell', 0)),
+        }
 
         if request.user.is_authenticated:
             in_watchlist = WatchlistItem.objects.filter(user=request.user, symbol=symbol).exists()
@@ -286,10 +296,12 @@ def stock_view(request, symbol):
         'interval': interval,
         'time_series': json.dumps(time_series),
         'fundamental_data': json.dumps(fundamental_data),
+        'fundamental_overview_data': fundamental_data,  # Pass the fundamental data directly
         'news_data': news_data,
         'cached': cached,
         'in_watchlist': in_watchlist,
         'stock_name': stock_name,
+        'analyst_ratings': analyst_ratings,  # Pass the analyst ratings to the template
     }
     return render(request, 'analysis/stocks.html', context)
 

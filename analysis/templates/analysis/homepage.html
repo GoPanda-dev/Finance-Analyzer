@@ -6,19 +6,25 @@
 <h1>Welcome to the Finance Analyzer</h1>
 
 {% if user.is_authenticated %}
-    <h2>Your Watchlist</h2>
-    <ul>
-        {% for item in watchlist_items %}
-            <li>
-                <a href="{% url 'stock_view' symbol=item.symbol %}">{{ item.name }} ({{ item.symbol }})</a>
-                <form method="post" action="{% url 'remove_from_watchlist' %}" style="display:inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="item_id" value="{{ item.id }}">
-                    <button type="submit">Remove</button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
+    <div class="watchlist-container">
+        <h2>Your Watchlist</h2>
+        <ul class="watchlist">
+            {% for item in watchlist_items %}
+                <li class="watchlist-item">
+                    <a href="{% url 'stock_view' symbol=item.symbol %}" class="watchlist-link">
+                        <span class="watchlist-name">{{ item.name }} ({{ item.symbol }})</span>
+                    </a>
+                    <form method="post" action="{% url 'remove_from_watchlist' %}" class="watchlist-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                        <button type="submit" class="remove-button">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 
     <h3>Latest News</h3>
     <div class="news-section">
@@ -55,76 +61,4 @@
         {% endfor %}
     </div>
 {% endif %}
-
-<style>
-    .news-section {
-        flex-wrap: wrap;
-        display: grid;
-        gap: 10px;
-        margin-top: 20px;
-        grid-template-columns: repeat(4, 1fr); /* 4 columns on desktop */
-    }
-    
-    .news-item {
-        position: relative;
-        width: calc(33.333% - 20px);
-        height: 300px; /* Adjust height as needed */
-        background-size: cover;
-        background-position: center;
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s, box-shadow 0.3s;
-        padding: 120px;
-    }
-    
-    .news-item:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3);
-    }
-    
-    .news-content {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
-        padding: 20px;
-        backdrop-filter: blur(5px);
-        transition: background 0.3s;
-    }
-    
-    .news-content p,
-    .news-content h3,
-    .news-content .sentiment {
-        margin: 2rm;
-    }
-    
-    .news-content a {
-        color: white;
-        text-decoration: none;
-        transition: color 0.3s;
-    }
-    
-    .news-content a:hover {
-        color: #ffd700; /* Gold color for hover effect */
-    }
-    
-    .sentiment {
-        margin-top: 10px;
-    }
-    
-    .sentiment-label {
-        font-weight: bold;
-    }
-    
-    .sentiment-tag {
-        padding: 5px 10px;
-        border-radius: 5px;
-        background-color: rgba(255, 255, 255, 0.2);
-        text-transform: capitalize;
-    }
-    
-</style>
 {% endblock %}

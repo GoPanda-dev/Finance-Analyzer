@@ -30,12 +30,90 @@
             <div style="max-width: 100%; height: 400px;">
                 <div style="z-index: -1;" id="chart"></div>
             </div>
+            <div class="analyst-ratings-container">
+                <h3>Analyst Ratings</h3>
+                <div class="rating-scale">
+                    {% if analyst_ratings.strong_buy > 0 %}
+                        <div class="rating-level strong-buy" style="flex: {{ analyst_ratings.strong_buy }};">
+                            <span>Strong Buy ({{ analyst_ratings.strong_buy }})</span>
+                        </div>
+                    {% endif %}
+                    {% if analyst_ratings.buy > 0 %}
+                        <div class="rating-level buy" style="flex: {{ analyst_ratings.buy }};">
+                            <span>Buy ({{ analyst_ratings.buy }})</span>
+                        </div>
+                    {% endif %}
+                    {% if analyst_ratings.hold > 0 %}
+                        <div class="rating-level hold" style="flex: {{ analyst_ratings.hold }};">
+                            <span>Hold ({{ analyst_ratings.hold }})</span>
+                        </div>
+                    {% endif %}
+                    {% if analyst_ratings.sell > 0 %}
+                        <div class="rating-level sell" style="flex: {{ analyst_ratings.sell }};">
+                            <span>Sell ({{ analyst_ratings.sell }})</span>
+                        </div>
+                    {% endif %}
+                    {% if analyst_ratings.strong_sell > 0 %}
+                        <div class="rating-level strong-sell" style="flex: {{ analyst_ratings.strong_sell }};">
+                            <span>Strong Sell ({{ analyst_ratings.strong_sell }})</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
         <div class="right-half">
-            <div id="company-overview">
+            <!--<div id="company-overview">
                 <div id="company-overview-grid"></div>
+            </div> -->
+
+            <div class="company-overview-container">
+                <h2>{{ stock_name }} ({{ symbol }}) Overview</h2>
+                <div class="overview-grid">
+                    <div class="overview-item">
+                        <span class="overview-title">Description:</span>
+                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.Description }}</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-title">Sector:</span>
+                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.Sector }}</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-title">Industry:</span>
+                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.Industry }}</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-title">Market Capitalization:</span>
+                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.MarketCapitalization }}</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-title">PE Ratio:</span>
+                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.PERatio }}</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-title">Dividend Yield:</span>
+                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.DividendYield }}</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-title">EPS:</span>
+                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.EPS }}</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-title">Book Value:</span>
+                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.BookValue }}</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-title">52 Week High:</span>
+                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.52WeekHigh }}</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-title">52 Week Low:</span>
+                        <span class="overview-value">{{ fundamental_overview_data.OVERVIEW.52WeekLow }}</span>
+                    </div>
+                    <!-- Add more items as needed -->
+                </div>
             </div>
+            
         </div>
 
     </div>
@@ -91,6 +169,7 @@
         </div>
     </div>
 </div>
+
 <h2>News</h2>
 <div class="news-section">
     {% for news in news_data %}
@@ -168,18 +247,28 @@
         margin-left: 5px;
     }
 
+    /* General styles */
     .main-content {
         display: flex;
         justify-content: space-between;
+        flex-wrap: wrap; /* Ensure content wraps on smaller screens */
+        margin: 0 -10px; /* Adjust for padding */
     }
-
-    .left-half {
-        width: 48%;
+    
+    .left-half, .right-half {
+        width: calc(50% - 20px); /* Adjust for padding */
+        box-sizing: border-box; /* Ensure padding and borders are included in the element's total width and height */
+        padding: 10px;
     }
-
-    .right-half {
-        width: 48%;
+    
+    /* Media query for mobile devices */
+    @media (max-width: 768px) {
+        .left-half, .right-half {
+            width: 100%;
+            padding: 10px 0; /* Optional: Adjust padding for better spacing on mobile */
+        }
     }
+    
 
     #company-overview {
         max-height: 400px;
@@ -188,7 +277,7 @@
     }
 
     #chart, #earnings-chart {
-        max-height: 500px;
+        max-height: 400px;
     }
 
     .gridjs-container {
