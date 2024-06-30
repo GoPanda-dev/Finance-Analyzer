@@ -263,18 +263,74 @@ document.addEventListener("DOMContentLoaded", function() {
             }],
             chart: {
                 type: 'bar',
-                height: 400
+                height: 350
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 10,
+                    dataLabels: {
+                        position: 'top', // top, center, bottom
+                    },
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function (val) {
+                    return val.toFixed(2); // Adjusted to show earnings data
+                },
+                offsetY: -20,
+                style: {
+                    fontSize: '12px',
+                    colors: ["#304758"]
+                }
             },
             xaxis: {
-                type: 'datetime',
                 categories: data.map(item => item.x),
-                title: {
-                    text: 'Fiscal Date'
+                type: 'datetime',
+                position: 'top',
+                axisBorder: {
+                    show: false
+                },
+                axisTicks: {
+                    show: false
+                },
+                crosshairs: {
+                    fill: {
+                        type: 'gradient',
+                        gradient: {
+                            colorFrom: '#D8E3F0',
+                            colorTo: '#BED1E6',
+                            stops: [0, 100],
+                            opacityFrom: 0.4,
+                            opacityTo: 0.5,
+                        }
+                    }
+                },
+                tooltip: {
+                    enabled: true,
                 }
             },
             yaxis: {
-                title: {
-                    text: 'Earnings'
+                axisBorder: {
+                    show: false
+                },
+                axisTicks: {
+                    show: false,
+                },
+                labels: {
+                    show: false,
+                    formatter: function (val) {
+                        return val.toFixed(2); // Adjusted to show earnings data
+                    }
+                }
+            },
+            title: {
+                text: 'Earnings',
+                floating: true,
+                offsetY: 330,
+                align: 'center',
+                style: {
+                    color: '#444'
                 }
             }
         });

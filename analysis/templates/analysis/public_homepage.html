@@ -9,19 +9,12 @@
 <div class="news-section">
     {% for news in news_data %}
         <div class="news-item">
-            <h4><a href="{{ news.url }}">{{ news.title }}</a></h4>
             <p><strong>Source:</strong> {{ news.source }}</p>
-            <p><strong>Published:</strong> {{ news.time_published }}</p>
-            <p><strong>Summary:</strong> {{ news.summary }}</p>
-            <div class="sentiment">
-                <span class="sentiment-label">Sentiment: </span>
-                <span class="sentiment-tag {{ news.overall_sentiment_label|lower }}">
-                    {{ news.overall_sentiment_label }}
-                </span>
-            </div>
+            <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
             {% if news.banner_image %}
             <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
             {% endif %}
+            <p>{{ news.summary }}</p>
         </div>
     {% endfor %}
 </div>

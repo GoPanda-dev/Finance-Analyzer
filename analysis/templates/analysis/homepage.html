@@ -19,63 +19,41 @@
             </li>
         {% endfor %}
     </ul>
-    <h3>Add to Watchlist</h3>
-    <form method="post" action="{% url 'add_to_watchlist' %}">
-        {% csrf_token %}
-        {{ watchlist_item_form.as_p }}
-        <button type="submit">Add</button>
-    </form>
 
     <h3>Latest News</h3>
     <div class="news-section">
-        {% if news_data %}
-            {% for news in news_data %}
-                <div class="news-item">
-                    <h4><a href="{{ news.url }}">{{ news.title }}</a></h4>
-                    <p><strong>Source:</strong> {{ news.source }}</p>
-                    <p><strong>Published:</strong> {{ news.time_published }}</p>
-                    <p><strong>Summary:</strong> {{ news.summary }}</p>
-                    <div class="sentiment">
-                        <span class="sentiment-label">Sentiment: </span>
-                        <span class="sentiment-tag {{ news.overall_sentiment_label|lower }}">
-                            {{ news.overall_sentiment_label }}
-                        </span>
-                    </div>
-                    {% if news.banner_image %}
-                    <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
-                    {% endif %}
+        {% for news in news_data %}
+            <div class="news-item">
+                <p><strong>Source:</strong> {{ news.source }}</p>
+                <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
+                {% if news.banner_image %}
+                <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
+                {% endif %}
+                <p>{{ news.summary }}</p>
+                <div class="sentiment">
+                    <span class="sentiment-label">Sentiment: </span>
+                    <span class="sentiment-tag {{ news.overall_sentiment_label|lower }}">
+                        {{ news.overall_sentiment_label }}
+                    </span>
                 </div>
-            {% endfor %}
-        {% else %}
-            <p>No news available.</p>
-        {% endif %}
+            </div>
+        {% endfor %}
     </div>
 {% else %}
     <p>Please <a href="{% url 'login' %}">login</a> to manage your watchlist.</p>
 
     <h3>Top Gainers News</h3>
     <div class="news-section">
-        {% if news_data %}
-            {% for news in news_data %}
-                <div class="news-item">
-                    <h4><a href="{{ news.url }}">{{ news.title }}</a></h4>
-                    <p><strong>Source:</strong> {{ news.source }}</p>
-                    <p><strong>Published:</strong> {{ news.time_published }}</p>
-                    <p><strong>Summary:</strong> {{ news.summary }}</p>
-                    <div class="sentiment">
-                        <span class="sentiment-label">Sentiment: </span>
-                        <span class="sentiment-tag {{ news.overall_sentiment_label|lower }}">
-                            {{ news.overall_sentiment_label }}
-                        </span>
-                    </div>
-                    {% if news.banner_image %}
-                    <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
-                    {% endif %}
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>No news available.</p>
-        {% endif %}
+        {% for news in news_data %}
+            <div class="news-item">
+                <p><strong>Source:</strong> {{ news.source }}</p>
+                <h3><a href="{{ news.url }}" target="_blank">{{ news.title }}</a></h3>
+                {% if news.banner_image %}
+                <img src="{{ news.banner_image }}" alt="{{ news.title }}" style="max-width:100%;">
+                {% endif %}
+                <p>{{ news.summary }}</p>
+            </div>
+        {% endfor %}
     </div>
 {% endif %}
 {% endblock %}
