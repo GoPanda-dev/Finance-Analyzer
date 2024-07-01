@@ -120,7 +120,6 @@ th {
 /* Company Overview Styles */
 .company-overview-container {
     width: 95%;
-    max-width: 800px;
     margin: 20px auto;
     padding: 20px;
     border-radius: 5px;
@@ -189,8 +188,7 @@ th {
 
 /* Analyst Ratings Styles */
 .analyst-ratings-container {
-    width: 95%;
-    max-width: 800px;
+    width: 98%;
     margin: 20px auto;
     padding: 20px;
     border-radius: 5px;

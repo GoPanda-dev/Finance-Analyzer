@@ -220,31 +220,46 @@ document.addEventListener("DOMContentLoaded", function() {
         }).render(document.getElementById(containerId));
     }
 
+    function filterDataByDateRange(data, startDate, endDate) {
+        return data.filter(item => {
+            const date = new Date(item.fiscalDateEnding || item.x);
+            return date >= new Date(startDate) && date <= new Date(endDate);
+        });
+    }
+
     function toggleDataType() {
         const selectedType = document.getElementById('toggle-data').value;
-        console.log('Selected Type:', selectedType);
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        console.log('Selected Type:', selectedType, 'Start Date:', startDate, 'End Date:', endDate);
 
         const incomeStatementGrid = document.getElementById('income-statement-grid');
         const balanceSheetGrid = document.getElementById('balance-sheet-grid');
         const cashFlowGrid = document.getElementById('cash-flow-grid');
 
         if (incomeStatementGrid) {
-            createGridFromNestedJSON(fundamentalData.INCOME_STATEMENT, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports', 'income-statement-grid');
+            const filteredData = filterDataByDateRange(fundamentalData.INCOME_STATEMENT[selectedType === 'annual' ? 'annualReports' : 'quarterlyReports'], startDate, endDate);
+            createGridFromNestedJSON({[selectedType === 'annual' ? 'annualReports' : 'quarterlyReports']: filteredData}, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports', 'income-statement-grid');
         }
 
         if (balanceSheetGrid) {
-            createGridFromNestedJSON(fundamentalData.BALANCE_SHEET, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports', 'balance-sheet-grid');
+            const filteredData = filterDataByDateRange(fundamentalData.BALANCE_SHEET[selectedType === 'annual' ? 'annualReports' : 'quarterlyReports'], startDate, endDate);
+            createGridFromNestedJSON({[selectedType === 'annual' ? 'annualReports' : 'quarterlyReports']: filteredData}, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports', 'balance-sheet-grid');
         }
 
         if (cashFlowGrid) {
-            createGridFromNestedJSON(fundamentalData.CASH_FLOW, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports', 'cash-flow-grid');
+            const filteredData = filterDataByDateRange(fundamentalData.CASH_FLOW[selectedType === 'annual' ? 'annualReports' : 'quarterlyReports'], startDate, endDate);
+            createGridFromNestedJSON({[selectedType === 'annual' ? 'annualReports' : 'quarterlyReports']: filteredData}, selectedType === 'annual' ? 'annualReports' : 'quarterlyReports', 'cash-flow-grid');
         }
 
         if (fundamentalData.EARNINGS) {
             const earningsData = fundamentalData.EARNINGS[selectedType === 'annual' ? 'annualEarnings' : 'quarterlyEarnings'].map(item => ({
                 x: item.fiscalDateEnding,
                 y: parseFloat(item.reportedEPS)
-            })).sort((a, b) => new Date(a.x) - new Date(b.x));
+            })).filter(item => {
+                const date = new Date(item.x);
+                return date >= new Date(startDate) && date <= new Date(endDate);
+            }).sort((a, b) => new Date(a.x) - new Date(b.x));
 
             createEarningsChart(earningsData);
         }
@@ -259,6 +274,20 @@ document.addEventListener("DOMContentLoaded", function() {
     if (toggleDataElement) {
         toggleDataElement.addEventListener('change', toggleDataType);
     }
+
+    const startDateElement = document.getElementById('start-date');
+    const endDateElement = document.getElementById('end-date');
+
+    if (startDateElement && endDateElement) {
+        startDateElement.addEventListener('change', toggleDataType);
+        endDateElement.addEventListener('change', toggleDataType);
+    }
+
+    // Set default date range to last 5 years
+    const today = new Date();
+    const fiveYearsAgo = new Date(today.setFullYear(today.getFullYear() - 5));
+    startDateElement.value = fiveYearsAgo.toISOString().split('T')[0];
+    endDateElement.value = new Date().toISOString().split('T')[0];
 
     toggleDataType();
 
