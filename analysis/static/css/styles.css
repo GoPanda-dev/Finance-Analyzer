@@ -1,10 +1,45 @@
+:root {
+    --background-color: #f9f9f9;
+    --text-color: #333333;
+    --primary-color: #1e90ff;
+    --secondary-color: #ff6347;
+    --border-color: #cccccc;
+    --hover-bg-color: #e6e6e6;
+    --accent-color: #ff4500;
+}
+
+body.light-theme {
+    --background-color: #f9f9f9;
+    --text-color: #333333;
+    --primary-color: #1e90ff;
+    --secondary-color: #ff6347;
+    --border-color: #cccccc;
+    --hover-bg-color: #e6e6e6;
+    --accent-color: #ff4500;
+}
+
+body.dark-theme {
+    --background-color: #1c1c1c;
+    --text-color: #d3d3d3;
+    --primary-color: #1e90ff;
+    --secondary-color: #ff6347;
+    --border-color: #444444;
+    --hover-bg-color: #2c2c2c;
+    --accent-color: #ff4500;
+}
+
 body {
     font-family: Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 nav {
-    background-color: #f8f9fa;
+    background-color: var(--background-color);
     padding: 1em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 nav form {
@@ -16,11 +51,24 @@ nav input[type="text"] {
     padding: 0.5em;
     font-size: 1em;
     margin-right: 0.5em;
+    background-color: var(--hover-bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
 }
 
 nav button {
     padding: 0.5em 1em;
     font-size: 1em;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    border: none;
+    cursor: pointer;
+}
+
+nav button#theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
 .content {
@@ -31,19 +79,82 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 2em;
+    background-color: var(--background-color);
 }
 
-table, th, td {
-    border: 1px solid #ddd;
+table,
+th,
+td {
+    border: 1px solid var(--border-color);
 }
 
-th, td {
+th,
+td {
     padding: 8px;
     text-align: left;
 }
 
 th {
-    background-color: #f2f2f2;
+    background-color: var(--hover-bg-color);
+}
+
+/* General styles */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 20px;
+    padding: 10px;
+}
+
+/* Ensure content wraps on smaller screens */
+.left-half,
+.right-half {
+    padding: 10px;
+    box-sizing: border-box;
+    /* Ensure padding and borders are included in the element's total width and height */
+}
+
+/* Media query for mobile devices */
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+    }
+
+    .right-half {
+        order: 1;
+    }
+
+    .left-half {
+        order: 2;
+    }
+}
+
+#company-overview {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#chart,
+#earnings-chart {
+    max-height: 400px;
+}
+
+.gridjs-container {
+    font-size: 12px;
+}
+
+.gridjs-header .gridjs-th {
+    white-space: nowrap;
+}
+
+.gridjs-td {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 150px;
 }
 
 /* Watchlist Styles */
@@ -54,14 +165,14 @@ th {
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: #ffffff;
+    background-color: var(--background-color);
 }
 
 .watchlist-container h2 {
     text-align: center;
     font-size: 24px;
     margin-bottom: 20px;
-    color: #333333;
+    color: var(--text-color);
 }
 
 .watchlist {
@@ -77,23 +188,23 @@ th {
     padding: 10px 20px;
     margin-bottom: 10px;
     border-radius: 5px;
-    background-color: #f9f9f9;
+    background-color: var(--hover-bg-color);
     transition: background-color 0.3s ease;
 }
 
 .watchlist-item:hover {
-    background-color: #f1f1f1;
+    background-color: var(--hover-bg-color);
 }
 
 .watchlist-link {
     text-decoration: none;
-    color: #007bff;
+    color: var(--primary-color);
     font-size: 18px;
     transition: color 0.3s ease;
 }
 
 .watchlist-link:hover {
-    color: #0056b3;
+    color: var(--accent-color);
 }
 
 .watchlist-name {
@@ -107,14 +218,14 @@ th {
 .remove-button {
     background: none;
     border: none;
-    color: #dc3545;
+    color: var(--secondary-color);
     cursor: pointer;
     font-size: 18px;
     transition: color 0.3s ease;
 }
 
 .remove-button:hover {
-    color: #c82333;
+    color: var(--accent-color);
 }
 
 /* Company Overview Styles */
@@ -124,14 +235,14 @@ th {
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: #ffffff;
+    background-color: var(--background-color);
 }
 
 .company-overview-container h2 {
     text-align: center;
     font-size: 28px;
     margin-bottom: 20px;
-    color: #333333;
+    color: var(--text-color);
 }
 
 .overview-grid-desc {
@@ -146,13 +257,13 @@ th {
     flex-direction: column;
     padding: 10px;
     border-radius: 5px;
-    background-color: #f9f9f9;
+    background-color: var(--hover-bg-color);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
 }
 
 .overview-item-desc:hover {
-    background-color: #f1f1f1;
+    background-color: var(--hover-bg-color);
 }
 
 .overview-grid {
@@ -166,23 +277,23 @@ th {
     flex-direction: column;
     padding: 10px;
     border-radius: 5px;
-    background-color: #f9f9f9;
+    background-color: var(--hover-bg-color);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
 }
 
 .overview-item:hover {
-    background-color: #f1f1f1;
+    background-color: var(--hover-bg-color);
 }
 
 .overview-title {
     font-weight: bold;
     margin-bottom: 5px;
-    color: #555555;
+    color: var(--text-color);
 }
 
 .overview-value {
-    color: #333333;
+    color: var(--text-color);
 }
 
 
@@ -193,14 +304,14 @@ th {
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: #ffffff;
+    background-color: var(--background-color);
 }
 
 .analyst-ratings-container h3 {
     text-align: center;
     font-size: 24px;
     margin-bottom: 20px;
-    color: #333333;
+    color: var(--text-color);
 }
 
 .rating-scale {
@@ -226,44 +337,49 @@ th {
 }
 
 .strong-buy {
-    background-color: #4caf50; /* Green */
+    background-color: #4caf50;
+    /* Green */
 }
 
 .buy {
-    background-color: #8bc34a; /* Light Green */
+    background-color: #8bc34a;
+    /* Light Green */
 }
 
 .hold {
-    background-color: #ffeb3b; /* Yellow */
+    background-color: #ffeb3b;
+    /* Yellow */
     color: #333;
 }
 
 .sell {
-    background-color: #ff9800; /* Orange */
+    background-color: #ff9800;
+    /* Orange */
 }
 
 .strong-sell {
-    background-color: #f44336; /* Red */
+    background-color: #f44336;
+    /* Red */
 }
 
 .accordion {
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: #ffffff;
+    background-color: var(--background-color);
 }
 
 .accordion-header {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    background-color: #f1f1f1;
-    border-bottom: 1px solid #ddd;
+    background-color: var(--hover-bg-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .accordion-button {
     flex: 1;
     text-align: center;
-    background-color: #f1f1f1;
+    background-color: var(--hover-bg-color);
     border: none;
     outline: none;
     padding: 18px;
@@ -271,7 +387,8 @@ th {
     transition: background-color 0.4s, box-shadow 0.4s;
     cursor: pointer;
     border-radius: 5px 5px;
-    border-right: 1px solid #ddd;
+    border-right: 1px solid var(--border-color);
+    color: var(--text-color);
 }
 
 .accordion-button:last-child {
@@ -280,17 +397,17 @@ th {
 
 .accordion-button:hover,
 .accordion-button:focus {
-    background-color: #e2e2e2;
+    background-color: var(--hover-bg-color);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .accordion-content {
     display: none;
     padding: 18px;
-    background-color: #fff;
+    background-color: var(--background-color);
     border-top: none;
     overflow: hidden;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-top: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: max-height 0.4s ease;
@@ -298,7 +415,7 @@ th {
 
 .toggle-container {
     margin-bottom: 20px;
-    background-color: #f9f9f9;
+    background-color: var(--hover-bg-color);
     padding: 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -314,21 +431,21 @@ th {
 .column-toggles .toggle {
     display: flex;
     align-items: center;
-    background-color: #f1f1f1;
+    background-color: var(--hover-bg-color);
     padding: 5px 10px;
     border-radius: 5px;
     transition: background-color 0.4s, box-shadow 0.4s;
 }
 
 .column-toggles .toggle:hover {
-    background-color: #e2e2e2;
+    background-color: var(--hover-bg-color);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .column-toggles label {
     margin-left: 5px;
     font-size: 14px;
-    color: #333;
+    color: var(--text-color);
 }
 
 
@@ -337,13 +454,15 @@ th {
     display: grid;
     gap: 20px;
     margin-top: 20px;
-    grid-template-columns: repeat(4, 1fr); /* 4 columns on desktop */
+    grid-template-columns: repeat(4, 1fr);
+    /* 4 columns on desktop */
 }
 
 .news-item {
     position: relative;
     width: calc(33.333% - 20px);
-    height: 250px; /* Adjust height as needed */
+    height: 250px;
+    /* Adjust height as needed */
     background-size: cover;
     background-position: center;
     border-radius: 5px;
@@ -385,7 +504,8 @@ th {
 }
 
 .news-content a:hover {
-    color: #ffd700; /* Gold color for hover effect */
+    color: #ffd700;
+    /* Gold color for hover effect */
 }
 
 .sentiment {
@@ -426,17 +546,18 @@ th {
 
 @media (max-width: 1024px) {
     .news-section {
-        grid-template-columns: repeat(2, 1fr); /* 2 columns on tablets */
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 columns on tablets */
     }
 }
 
 @media (max-width: 768px) {
     .news-section {
-        grid-template-columns: 1fr; /* 1 column on mobile */
+        grid-template-columns: 1fr;
+        /* 1 column on mobile */
     }
+
     .news-item {
         padding: 150px;
     }
 }
-
-

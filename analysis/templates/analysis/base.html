@@ -91,6 +91,9 @@
             <input type="text" id="search-input" name="query" placeholder="Search symbol or asset">
             <div id="search-results" class="search-results" style="display: none;"></div>
         </form>
+        <button id="theme-toggle" aria-label="Toggle Theme">
+            <i id="theme-icon" class="fas fa-moon"></i>
+        </button>
         <div class="nav-links">
             {% if user.is_authenticated %}
                 <form action="{% url 'logout' %}" method="post" style="display: inline;">
@@ -107,6 +110,7 @@
         {% block content %}
         {% endblock %}
     </div>
+    <script src="{% static 'js/theme_toggle.js' %}"></script>
     <script>
         $(document).ready(function() {
             $('#search-input').on('keyup', function() {

@@ -222,7 +222,7 @@ def fetch_news_data(symbol):
     return []
 
 def stock_view(request, symbol):
-    interval = request.GET.get('interval', 'daily')
+    interval = request.GET.get('interval', '60min')
     
     stock_cache_key = f'{symbol}_{interval}_stock_data'
     fundamental_cache_key = f'{symbol}_fundamental_data'

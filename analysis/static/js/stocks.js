@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var chart;
     var earningsChart;
     var chartType = 'line'; // Default chart type
-    var selectedInterval = new URLSearchParams(window.location.search).get('interval') || 'daily';
+    var selectedInterval = new URLSearchParams(window.location.search).get('interval') || '60min';
 
     // Get the data from the script tags
     var symbol = document.querySelector('.content-wrapper').getAttribute('data-symbol');
@@ -32,14 +32,14 @@ document.addEventListener("DOMContentLoaded", function() {
         if (chart) {
             chart.destroy();
         }
-
+    
         var options = {
             series: [{
                 name: symbol,
                 data: type === 'candlestick' ? data.map(item => ({
                     x: item.x,
                     y: [item.open, item.high, item.low, item.close]
-                })) : data
+                })) : data.map(item => ({ x: item.x, y: item.close }))
             }],
             chart: {
                 type: type,
@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                 index: -1,
                                 title: 'Toggle Line/Candlestick',
                                 class: 'custom-icon',
-                                click: function(chart, options, e) {
+                                click: function() {
                                     chartType = chartType === 'candlestick' ? 'line' : 'candlestick';
                                     createChart(data, chartType);
                                 }
@@ -97,20 +97,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
         };
-
-        if (type === 'line') {
-            options.series[0].data = data.map(item => ({ x: item.x, y: item.close }));
-        }
-
-        chart = new ApexCharts(document.querySelector("#chart"), options);
+    
+        chart = new ApexCharts(document.getElementById("chart"), options);
         chart.render();
-
+    
         document.getElementById('interval-selector').addEventListener('change', function() {
             var selectedInterval = this.value;
             window.location.href = `?interval=${selectedInterval}`;
         });
     }
-
+    
     var dates = Object.keys(timeSeriesData).sort((a, b) => new Date(a) - new Date(b));
     var formattedData = dates.map(date => ({
         x: new Date(date),
@@ -119,8 +115,9 @@ document.addEventListener("DOMContentLoaded", function() {
         low: parseFloat(timeSeriesData[date]['3. low']),
         close: parseFloat(timeSeriesData[date]['4. close'])
     }));
-
+    
     createChart(formattedData, chartType);
+    
 
     function formatKeyName(key) {
         return key.replace(/([A-Z])/g, ' $1').replace(/^./, function(str) { return str.toUpperCase(); });
@@ -397,13 +394,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
         earningsChart.render();
     }
-
-    const earningsData = fundamentalData.EARNINGS.annualEarnings.map(item => ({
-        x: item.fiscalDateEnding,
-        y: parseFloat(item.reportedEPS)
-    })).sort((a, b) => new Date(a.x) - new Date(b.x));
-
-    createEarningsChart(earningsData);
 
     const marketCapElement = document.getElementById('market-cap');
     if (marketCapElement) {

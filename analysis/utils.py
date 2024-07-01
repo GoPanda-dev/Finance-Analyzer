@@ -73,7 +73,7 @@ def fetch_fundamental_data(symbol):
     return data
 
 def stock_detail_view(request, symbol):
-    interval = request.GET.get('interval', 'daily')
+    interval = request.GET.get('interval', '60min')
     fundamental_data = fetch_fundamental_data(symbol)
 
     context = {
