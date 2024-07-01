@@ -8,7 +8,7 @@ CACHE_DURATION = timedelta(minutes=15)
 cache = {}
 
 def fetch_all_assets(keyword):
-    api_key = 'YOUR_API_KEY'
+    api_key = API_KEY
     url = f'https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords={keyword}&apikey={api_key}'
     response = requests.get(url)
     
@@ -19,7 +19,7 @@ def fetch_all_assets(keyword):
         return []
 
 def fetch_stock_data(symbol, interval):
-    api_key = 'YOUR_API_KEY'
+    api_key = API_KEY
     base_url = 'https://www.alphavantage.co/query?'
     
     if 'min' in interval:
@@ -47,7 +47,7 @@ def fetch_stock_data(symbol, interval):
 
 
 def fetch_fundamental_data(symbol):
-    api_key = 'YOUR_API_KEY'
+    api_key = API_KEY
     base_url = 'https://www.alphavantage.co/query?function='
 
     functions = {
