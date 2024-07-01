@@ -153,12 +153,17 @@ document.addEventListener("DOMContentLoaded", function() {
         }).render(document.getElementById(containerId));
     }
 
+    var grids = {}; // To keep track of grid instances
+
     function createGridFromNestedJSON(json, nestedKey, containerId) {
+        console.log('Creating grid for:', containerId, 'with type:', nestedKey);
         if (json.Information) {
-            return `<div>${json.Information}</div>`;
+            document.getElementById(containerId).innerHTML = `<div>${json.Information}</div>`;
+            return;
         }
         if (!json[nestedKey] || json[nestedKey].length === 0) {
-            return `<div>No data available</div>`;
+            document.getElementById(containerId).innerHTML = `<div>No data available</div>`;
+            return;
         }
         let data = json[nestedKey];
         data.sort((a, b) => new Date(b.fiscalDateEnding) - new Date(a.fiscalDateEnding));
@@ -175,17 +180,41 @@ document.addEventListener("DOMContentLoaded", function() {
             })];
         });
 
-        new gridjs.Grid({
+        // Clear the container before rendering new grid
+        document.getElementById(containerId).innerHTML = '';
+
+        // Destroy existing grid if any
+        if (grids[containerId]) {
+            grids[containerId].destroy();
+        }
+
+        // Create and render the new grid
+        grids[containerId] = new gridjs.Grid({
             columns: columns,
             data: gridData,
             sort: true,
             search: true,
+            pagination: {
+                enabled: true,
+                limit: 10
+            },
             style: {
+                table: {
+                    'width': '100%',
+                    'border-collapse': 'collapse'
+                },
+                th: {
+                    'background-color': '#f1f1f1',
+                    'padding': '10px',
+                    'border': '1px solid #ddd'
+                },
                 td: {
                     'white-space': 'nowrap',
                     'text-overflow': 'ellipsis',
                     'overflow': 'hidden',
-                    'max-width': '150px'
+                    'max-width': '150px',
+                    'padding': '10px',
+                    'border': '1px solid #ddd'
                 }
             }
         }).render(document.getElementById(containerId));
@@ -193,6 +222,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function toggleDataType() {
         const selectedType = document.getElementById('toggle-data').value;
+        console.log('Selected Type:', selectedType);
 
         const incomeStatementGrid = document.getElementById('income-statement-grid');
         const balanceSheetGrid = document.getElementById('balance-sheet-grid');
@@ -225,12 +255,12 @@ document.addEventListener("DOMContentLoaded", function() {
         createGridFromFlatJSON(fundamentalData.OVERVIEW, 'company-overview-grid');
     }
 
-    toggleDataType();
-
     const toggleDataElement = document.getElementById('toggle-data');
     if (toggleDataElement) {
         toggleDataElement.addEventListener('change', toggleDataType);
     }
+
+    toggleDataType();
 
     var buttons = document.querySelectorAll('.accordion button');
 
