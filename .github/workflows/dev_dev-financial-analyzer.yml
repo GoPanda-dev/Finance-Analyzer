@@ -29,9 +29,6 @@ jobs:
       
       - name: Install dependencies
         run: pip install -r requirements.txt
-
-      - name: Run database migration
-        run: python manage.py migrate
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
