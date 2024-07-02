@@ -2,8 +2,9 @@ import requests
 import json
 from django.shortcuts import render
 from datetime import datetime, timedelta
+from django.conf import settings
 
-API_KEY = 'your_alphavantage_api_key'
+API_KEY = settings.ALPHAVANTAGE_API_KEY
 CACHE_DURATION = timedelta(minutes=15)
 cache = {}
 
