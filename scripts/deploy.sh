@@ -17,5 +17,5 @@ python manage.py migrate
 # Collect static files
 python manage.py collectstatic --noinput
 
-# Start the application using Gunicorn
-gunicorn --workers 3 finance_analyzer.wsgi:application --bind 0.0.0.0:8000
+# Start the application
+python manage.py runserver
