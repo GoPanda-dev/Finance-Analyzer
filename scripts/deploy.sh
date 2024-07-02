@@ -24,4 +24,4 @@ python manage.py migrate
 python manage.py collectstatic --noinput
 
 # Start the application using gunicorn
-gunicorn --workers 3 --bind 0.0.0.0:8000 your_project_name.wsgi:application
+gunicorn --workers 3 --bind 0.0.0.0:8000 Finance_Analyzer.wsgi:application
